@@ -363,7 +363,7 @@ export class Game {
         const colors = this.getColors();
 
         this.renderer.clear(colors.background, this.state.screenShake);
-        this.renderer.drawBackgroundGrid(this.state.backgroundPulse);
+        this.renderer.drawBackgroundGrid(this.state.backgroundPulse, colors.accent);
 
         // Powerups
         for (const powerup of this.state.powerups) {
@@ -397,11 +397,7 @@ export class Game {
         this.renderer.drawSlowTimeEffect(this.state.slowTimeActive);
 
         // Powerup progress orbs
-        this.renderer.drawPowerupProgress(
-            this.state.powerupOrbs,
-            this.state.powerupProgress,
-            GAME_CONFIG.RINGS_FOR_POWERUP
-        );
+        this.renderer.drawPowerupProgress(this.state.powerupOrbs, this.state.powerupProgress, GAME_CONFIG.RINGS_FOR_POWERUP);
 
         this.renderer.restore();
     }

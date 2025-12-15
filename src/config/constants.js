@@ -12,10 +12,10 @@ export const GAME_CONFIG = {
     POWERUP_SPAWN_CHANCE: 0.15,
 
     // Powerup progress (spiraling orbs) settings
-    RINGS_FOR_POWERUP: 8,          // Rings to pass before powerup spawns
-    POWERUP_ORB_ORBIT_RADIUS: 70,  // Starting orbit radius around icon
-    POWERUP_ORB_SPEED: 0.03,       // Base orbit rotation speed
-    POWERUP_ORB_SIZE: 6,           // Orb radius
+    RINGS_FOR_POWERUP: 8, // Rings to pass before powerup spawns
+    POWERUP_ORB_ORBIT_RADIUS: 70, // Starting orbit radius around icon
+    POWERUP_ORB_SPEED: 0.03, // Base orbit rotation speed
+    POWERUP_ORB_SIZE: 6, // Orb radius
 };
 
 // Storage Keys

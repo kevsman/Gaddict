@@ -51,9 +51,9 @@ export class GameState {
         this.backgroundPulse = 0;
 
         // Powerup progress orbs
-        this.powerupProgress = 0;          // Rings passed toward next powerup
-        this.powerupOrbs = [];             // Visual orbs spiraling inward
-        this.powerupOrbsAngle = 0;         // Current rotation angle for orbiting
+        this.powerupProgress = 0; // Rings passed toward next powerup
+        this.powerupOrbs = []; // Visual orbs spiraling inward
+        this.powerupOrbsAngle = 0; // Current rotation angle for orbiting
     }
 
     loadSavedData() {
@@ -149,13 +149,13 @@ export class GameState {
     addPowerupOrb(color) {
         // Each orb starts at outer orbit and will spiral in
         this.powerupOrbs.push({
-            angle: Math.random() * Math.PI * 2,  // Random starting angle
+            angle: Math.random() * Math.PI * 2, // Random starting angle
             radius: GAME_CONFIG.POWERUP_ORB_ORBIT_RADIUS,
-            targetRadius: 8,                      // Spirals close to center but not all the way
+            targetRadius: 8, // Spirals close to center but not all the way
             color: color,
-            speed: 0.02 + Math.random() * 0.02,   // Slightly different speeds
+            speed: 0.02 + Math.random() * 0.02, // Slightly different speeds
             size: GAME_CONFIG.POWERUP_ORB_SIZE,
-            displaySize: GAME_CONFIG.POWERUP_ORB_SIZE,  // Initialize displaySize
+            displaySize: GAME_CONFIG.POWERUP_ORB_SIZE, // Initialize displaySize
             alpha: 1,
         });
         this.powerupProgress++;
