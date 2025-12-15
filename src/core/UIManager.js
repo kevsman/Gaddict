@@ -109,14 +109,19 @@ export class UIManager {
         }, 2000);
     }
 
-    showComboPopup(text) {
-        this.elements.comboPopup.textContent = text;
+    showComboPopup(text, subtitle = null) {
+        // Build HTML with optional subtitle
+        let html = `<div class="popup-title">${text}</div>`;
+        if (subtitle) {
+            html += `<div class="popup-subtitle">${subtitle}</div>`;
+        }
+        this.elements.comboPopup.innerHTML = html;
         this.elements.comboPopup.style.opacity = '1';
         this.elements.comboPopup.style.transform = 'translate(-50%, -50%) scale(1.2)';
 
         setTimeout(() => {
             this.elements.comboPopup.style.opacity = '0';
             this.elements.comboPopup.style.transform = 'translate(-50%, -50%) scale(1)';
-        }, 800);
+        }, 1200);
     }
 }

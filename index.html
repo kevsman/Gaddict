@@ -298,6 +298,14 @@
                 top: 45%;
                 left: 50%;
                 transform: translate(-50%, -50%);
+                text-align: center;
+                pointer-events: none;
+                opacity: 0;
+                z-index: 15;
+                transition: opacity 0.3s, transform 0.3s;
+            }
+
+            #comboPopup .popup-title {
                 font-size: 38px;
                 font-weight: 600;
                 letter-spacing: 3px;
@@ -305,10 +313,16 @@
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
-                pointer-events: none;
-                opacity: 0;
-                z-index: 15;
                 filter: drop-shadow(0 2px 10px rgba(255, 217, 61, 0.5));
+            }
+
+            #comboPopup .popup-subtitle {
+                font-size: 16px;
+                font-weight: 400;
+                letter-spacing: 1px;
+                color: rgba(255, 255, 255, 0.85);
+                margin-top: 6px;
+                text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
             }
         </style>
     </head>

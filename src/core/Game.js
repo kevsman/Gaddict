@@ -209,7 +209,7 @@ export class Game {
         };
         const messages = activationMessages[type] || [powerupInfo.icon + ' ' + powerupInfo.name];
         const message = messages[Math.floor(Math.random() * messages.length)];
-        this.ui.showComboPopup(message);
+        this.ui.showComboPopup(message, powerupInfo.description);
 
         // Trigger a satisfaction pulse for the powerup
         this.state.triggerPulse(2);

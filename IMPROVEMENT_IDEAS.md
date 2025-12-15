@@ -135,16 +135,19 @@ _Deep game design psychology to increase retention._
 _Enhancing perception and inclusivity._
 
 21. **Chromatic Aberration (RGB Split)** ✅
+
     - **Concept:** Briefly separate the Red, Green, and Blue channels of the image during high-impact moments (Death, Powerup, 50x Combo).
     - **Why:** Mimics camera lens distortion, adding a subconscious "gritty" or "intense" feel that static images lack. It signals "damage" or "extreme energy" effectively.
     - **Status:** Implemented with auto-decay. Triggers on death (full), powerup activation (60%), and 50+ combos (80%).
 
 22. **Variable Trail / Motion Blur** ✅
+
     - **Concept:** The player leaves a fading trail that gets longer as speed increases.
     - **Why:** Research in speed perception shows that "smearing" moving objects helps the brain track trajectory better than discrete frames, reducing eye strain and increasing the sensation of speed.
     - **Status:** Implemented with 8-frame trail that scales with speed, using additive blending.
 
 23. **Dynamic Color Grading (Hysteresis)** ✅
+
     - **Concept:** Slowly shift the background hue towards "hotter" colors (Red/Orange) as the difficulty/speed increases, and back to "cooler" colors (Blue/Purple) during recovery phases.
     - **Why:** Uses color psychology to subconsciously signal danger/safety, reinforcing the "Sawtooth Difficulty Curve".
     - **Status:** Implemented with smooth lerping between cool (recovery) and hot (high speed) states.
