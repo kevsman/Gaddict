@@ -221,4 +221,96 @@ export class Renderer {
             this.ctx.fillRect(0, 0, this.width, this.height);
         }
     }
+
+    drawPowerupProgress(orbs, progress, maxProgress) {
+        if (progress === 0 && orbs.length === 0) return;
+
+        const ctx = this.ctx;
+        const iconX = this.width - 60;
+        const iconY = 80;
+
+        // Draw target powerup icon (mystery box style)
+        const iconPulse = Math.sin(Date.now() * 0.003) * 3;
+        const iconSize = 24 + iconPulse;
+
+        // Outer glow when close to ready
+        if (progress >= maxProgress - 2) {
+            ctx.beginPath();
+            ctx.arc(iconX, iconY, iconSize + 15, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 215, 0, ${0.2 + Math.sin(Date.now() * 0.01) * 0.15})`;
+            ctx.fill();
+        }
+
+        // Icon background circle
+        ctx.beginPath();
+        ctx.arc(iconX, iconY, iconSize, 0, Math.PI * 2);
+        const iconGradient = ctx.createRadialGradient(iconX, iconY, 0, iconX, iconY, iconSize);
+        iconGradient.addColorStop(0, '#4a4a6a');
+        iconGradient.addColorStop(1, '#2a2a3a');
+        ctx.fillStyle = iconGradient;
+        ctx.fill();
+
+        // Icon border
+        ctx.strokeStyle = progress >= maxProgress ? '#ffd700' : 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Question mark or star icon
+        ctx.font = 'bold 20px Arial';
+        ctx.fillStyle = progress >= maxProgress ? '#ffd700' : 'rgba(255, 255, 255, 0.8)';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(progress >= maxProgress ? '★' : '?', iconX, iconY);
+
+        // Draw orbiting orbs
+        for (let i = 0; i < orbs.length; i++) {
+            const orb = orbs[i];
+
+            // Calculate position - spiral toward icon
+            const x = iconX + Math.cos(orb.angle) * orb.radius;
+            const y = iconY + Math.sin(orb.angle) * orb.radius;
+
+            // Orb glow
+            ctx.beginPath();
+            ctx.arc(x, y, orb.displaySize + 4, 0, Math.PI * 2);
+            ctx.fillStyle = orb.color.replace(')', ', 0.3)').replace('rgb', 'rgba');
+            ctx.fill();
+
+            // Main orb
+            ctx.beginPath();
+            ctx.arc(x, y, orb.displaySize, 0, Math.PI * 2);
+            const orbGradient = ctx.createRadialGradient(x - 2, y - 2, 0, x, y, orb.displaySize);
+            orbGradient.addColorStop(0, '#fff');
+            orbGradient.addColorStop(0.3, orb.color);
+            orbGradient.addColorStop(1, orb.color);
+            ctx.fillStyle = orbGradient;
+            ctx.globalAlpha = orb.alpha;
+            ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+
+        // Draw progress indicator dots (empty slots)
+        const dotRadius = 4;
+        const dotSpacing = 14;
+        const startX = iconX - ((maxProgress - 1) * dotSpacing) / 2;
+
+        for (let i = 0; i < maxProgress; i++) {
+            const dotX = startX + i * dotSpacing;
+            const dotY = iconY + iconSize + 20;
+
+            ctx.beginPath();
+            ctx.arc(dotX, dotY, dotRadius, 0, Math.PI * 2);
+
+            if (i < progress) {
+                // Filled dot
+                ctx.fillStyle = '#00ffaa';
+                ctx.fill();
+            } else {
+                // Empty dot
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+        }
+    }
 }

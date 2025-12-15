@@ -11,6 +11,9 @@ import { haptic } from '../systems/HapticSystem.js';
 import { createRing } from '../entities/Ring.js';
 import { createRandomPowerup } from '../entities/Powerup.js';
 
+// Orb colors for powerup progress
+const ORB_COLORS = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dfe6e9', '#a29bfe', '#fd79a8'];
+
 // Main Game Class
 export class Game {
     constructor(canvas) {
@@ -104,11 +107,38 @@ export class Game {
         const colors = this.getColors();
         const ring = createRing(this.renderer.getScreenSize(), this.state.difficulty, this.state.patternMode, colors.ring);
         this.state.rings.push(ring);
+    }
 
-        // Maybe spawn powerup
-        if (Math.random() < GAME_CONFIG.POWERUP_SPAWN_CHANCE && this.state.score > 5) {
-            const powerup = createRandomPowerup(this.renderer.getScreenSize());
-            this.state.powerups.push(powerup);
+    spawnPowerupFromProgress() {
+        // Called when orb progress is full
+        const powerup = createRandomPowerup(this.renderer.getScreenSize());
+        this.state.powerups.push(powerup);
+        this.state.consumePowerupProgress();
+
+        // Visual feedback
+        sound.play('combo');
+        haptic.medium();
+        this.ui.showComboPopup('⚡ POWERUP INCOMING!');
+
+        // Burst particles at the icon location
+        this.particles.burst(this.renderer.width - 60, 80, '#ffd700', 15, {
+            minSpeed: 2,
+            maxSpeed: 6,
+            minSize: 3,
+            maxSize: 7,
+        });
+    }
+
+    onRingPassed(isPerfect) {
+        // Add an orb toward powerup progress (only after score > 3 to let player get started)
+        if (this.state.score > 3) {
+            const orbColor = ORB_COLORS[this.state.powerupProgress % ORB_COLORS.length];
+            this.state.addPowerupOrb(orbColor);
+
+            // Check if powerup should spawn
+            if (this.state.isPowerupReady()) {
+                this.spawnPowerupFromProgress();
+            }
         }
     }
 
@@ -202,6 +232,9 @@ export class Game {
         // Particles
         this.particles.update();
 
+        // Update powerup progress orbs
+        this.state.updatePowerupOrbs();
+
         // Smooth score display
         if (this.state.displayScore < this.state.score) {
             this.state.displayScore += Math.ceil((this.state.score - this.state.displayScore) * 0.2);
@@ -281,6 +314,9 @@ export class Game {
                     this.state.updateDifficulty();
                     this.checkThemeUnlocks();
 
+                    // Add progress toward next powerup
+                    this.onRingPassed(isPerfect);
+
                     this.particles.ring(
                         this.renderer.centerX,
                         this.renderer.centerY,
@@ -359,6 +395,13 @@ export class Game {
 
         // Slow time effect
         this.renderer.drawSlowTimeEffect(this.state.slowTimeActive);
+
+        // Powerup progress orbs
+        this.renderer.drawPowerupProgress(
+            this.state.powerupOrbs,
+            this.state.powerupProgress,
+            GAME_CONFIG.RINGS_FOR_POWERUP
+        );
 
         this.renderer.restore();
     }
