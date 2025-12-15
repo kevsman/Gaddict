@@ -29,8 +29,30 @@ export class UIManager {
         if (active && multiplier > 1) {
             this.elements.multiplier.textContent = `x${multiplier.toFixed(1)}`;
             this.elements.multiplier.classList.add('active');
+
+            // Dynamic styling
+            // Grow font size with multiplier
+            const size = Math.min(20 + (multiplier * 0.5), 40);
+            this.elements.multiplier.style.fontSize = `${size}px`;
+            
+            // Fire effect at 50x
+            if (multiplier >= 50) {
+                this.elements.multiplier.classList.add('on-fire');
+            } else {
+                this.elements.multiplier.classList.remove('on-fire');
+            }
+            
+            // Font weight
+            if (multiplier >= 20) {
+                this.elements.multiplier.style.fontWeight = '900';
+            } else {
+                this.elements.multiplier.style.fontWeight = '500';
+            }
+
         } else {
             this.elements.multiplier.classList.remove('active');
+            this.elements.multiplier.classList.remove('on-fire');
+            this.elements.multiplier.style.fontSize = '20px';
         }
     }
 

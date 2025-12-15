@@ -28,15 +28,11 @@ export class Renderer {
         return Math.max(this.width, this.height);
     }
 
-    clear(backgroundColor, screenShake = 0) {
-        if (screenShake > 0) {
-            this.ctx.save();
-            const shakeX = (Math.random() - 0.5) * screenShake;
-            const shakeY = (Math.random() - 0.5) * screenShake;
-            this.ctx.translate(shakeX, shakeY);
-        }
-
-        // Create gradient background instead of flat color
+    beginFrame(backgroundColor, zoom = 1, shake = 0) {
+        // Reset transform to ensure we cover the whole screen with background
+        this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+        
+        // Draw background
         const gradient = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, this.height);
         gradient.addColorStop(0, this.lightenColor(backgroundColor, 15));
         gradient.addColorStop(0.5, backgroundColor);
@@ -45,9 +41,26 @@ export class Renderer {
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.width, this.height);
 
-        if (screenShake > 0) {
-            this.ctx.restore();
+        // Save state for the camera transform
+        this.ctx.save();
+
+        // Apply Shake
+        let shakeX = 0;
+        let shakeY = 0;
+        if (shake > 0) {
+            shakeX = (Math.random() - 0.5) * shake;
+            shakeY = (Math.random() - 0.5) * shake;
         }
+
+        // Apply Zoom and Shake
+        // We want to zoom around the center
+        this.ctx.translate(this.centerX + shakeX, this.centerY + shakeY);
+        this.ctx.scale(zoom, zoom);
+        this.ctx.translate(-this.centerX, -this.centerY);
+    }
+
+    endFrame() {
+        this.ctx.restore();
     }
 
     lightenColor(hex, percent) {

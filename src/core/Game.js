@@ -28,6 +28,10 @@ export class Game {
 
         this.lastTime = 0;
         this.godMode = false; // Debug: auto-clear rings
+        
+        // Camera effects
+        this.screenShake = 0;
+        this.cameraZoom = 1;
 
         // Debug key listener
         window.addEventListener('keydown', (e) => {
@@ -82,13 +86,16 @@ export class Game {
         this.ui.updateMultiplier(1, false);
         this.ui.updatePowerupIndicator({}, false, POWERUP_TYPES);
 
+        sound.startMusic();
         this.spawnRing();
     }
 
     gameOver() {
         this.state.isPlaying = false;
+        this.screenShake = 20; // Heavy shake
 
         sound.play('death');
+        sound.stopMusic();
         haptic.death();
 
         const isNewHighScore = this.state.saveHighScore();
@@ -246,6 +253,7 @@ export class Game {
             // SPECIAL (instant effects)
             case 'clearRings':
                 // Clear all rings on screen!
+                this.screenShake = 15;
                 for (const ring of this.state.rings) {
                     if (!ring.passed) {
                         ring.markPassed('#ff4444');
@@ -346,6 +354,25 @@ export class Game {
     update(deltaTime) {
         const colors = this.getColors();
 
+        // Update Camera Shake
+        if (this.screenShake > 0) {
+            this.screenShake *= 0.9;
+            if (this.screenShake < 0.5) this.screenShake = 0;
+        }
+
+        // Update Camera Zoom
+        let targetZoom = 1.0;
+        if (this.state.tinyModeActive) {
+            targetZoom = 1.15;
+        } else if (this.state.giantModeActive) {
+            targetZoom = 0.9;
+        } else {
+            // Zoom in slightly when moving fast
+            const speedFactor = Math.max(0, (this.state.ringSpeed - 200) / 1000);
+            targetZoom = 1.0 + Math.min(speedFactor, 0.1);
+        }
+        this.cameraZoom += (targetZoom - this.cameraZoom) * 0.05;
+
         // Visual effects
         this.state.pulseEffect += 0.05;
         this.state.backgroundPulse = Math.sin(this.state.pulseEffect) * 0.5 + 0.5;
@@ -369,6 +396,7 @@ export class Game {
         if (!this.state.isPlaying) return;
 
         this.updatePowerups();
+        sound.updateMusic(this.state.combo);
 
         // Calculate effective speed
         let effectiveSpeed = this.state.ringSpeed;
@@ -550,7 +578,7 @@ export class Game {
     draw() {
         const colors = this.getColors();
 
-        this.renderer.clear(colors.background, 0);
+        this.renderer.beginFrame(colors.background, this.cameraZoom, this.screenShake);
         this.renderer.drawBackgroundEffects(this.state.backgroundPulse, colors.accent, colors);
 
         // Powerups
@@ -602,6 +630,8 @@ export class Game {
         if (this.state.rainbowActive) {
             this.renderer.drawRainbowEffect();
         }
+
+        this.renderer.endFrame();
     }
 
     gameLoop(timestamp) {
