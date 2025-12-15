@@ -1,216 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Pulse</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: #0a0a0f;
-            overflow: hidden;
-            touch-action: none;
-            user-select: none;
-            -webkit-user-select: none;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        #gameCanvas {
-            display: block;
-            margin: 0 auto;
-        }
-        
-        #ui {
-            position: absolute;
-            top: 20px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            color: #fff;
-            font-size: 24px;
-            font-weight: 300;
-            letter-spacing: 2px;
-            pointer-events: none;
-            z-index: 10;
-        }
-        
-        #score {
-            font-size: 48px;
-            font-weight: 100;
-        }
-        
-        #multiplier {
-            font-size: 18px;
-            color: #ffcc00;
-            opacity: 0;
-            transition: opacity 0.3s;
-            margin-top: 5px;
-        }
-        
-        #multiplier.active {
-            opacity: 1;
-        }
-        
-        #highScore {
-            font-size: 14px;
-            opacity: 0.5;
-            margin-top: 5px;
-        }
-        
-        #powerupIndicator {
-            position: absolute;
-            top: 120px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            pointer-events: none;
-        }
-        
-        .powerup-active {
-            display: inline-block;
-            padding: 5px 15px;
-            margin: 5px;
-            border-radius: 20px;
-            font-size: 12px;
-            letter-spacing: 1px;
-            animation: powerupPulse 1s infinite;
-        }
-        
-        @keyframes powerupPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.05); }
-        }
-        
-        #message {
-            position: absolute;
-            bottom: 100px;
-            left: 0;
-            right: 0;
-            text-align: center;
-            color: rgba(255,255,255,0.6);
-            font-size: 16px;
-            letter-spacing: 1px;
-            pointer-events: none;
-        }
-        
-        #gameOver {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: #fff;
-            display: none;
-            pointer-events: none;
-            z-index: 20;
-        }
-        
-        #gameOver h1 {
-            font-size: 36px;
-            font-weight: 100;
-            margin-bottom: 20px;
-            letter-spacing: 4px;
-        }
-        
-        #gameOver p {
-            font-size: 18px;
-            opacity: 0.7;
-            margin-bottom: 10px;
-        }
-        
-        #newHighScore {
-            color: #ffcc00;
-            font-size: 14px;
-            letter-spacing: 2px;
-            margin-bottom: 15px;
-            display: none;
-        }
-        
-        #restartHint {
-            font-size: 14px;
-            opacity: 0.4;
-            margin-top: 30px;
-        }
-        
-        #themeUnlock {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: #fff;
-            display: none;
-            pointer-events: none;
-            z-index: 25;
-            animation: unlockPop 0.5s ease-out;
-        }
-        
-        @keyframes unlockPop {
-            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-            50% { transform: translate(-50%, -50%) scale(1.2); }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        }
-        
-        #themeUnlock h2 {
-            font-size: 24px;
-            font-weight: 100;
-            letter-spacing: 3px;
-            margin-bottom: 10px;
-        }
-        
-        #themeUnlock p {
-            font-size: 16px;
-            opacity: 0.8;
-        }
-        
-        #comboPopup {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 32px;
-            font-weight: 100;
-            letter-spacing: 4px;
-            color: #ffcc00;
-            pointer-events: none;
-            opacity: 0;
-            z-index: 15;
-        }
-    </style>
-</head>
-<body>
-    <canvas id="gameCanvas"></canvas>
-    
-    <div id="ui">
-        <div id="score">0</div>
-        <div id="multiplier">x1</div>
-        <div id="highScore">BEST: 0</div>
-    </div>
-    
-    <div id="powerupIndicator"></div>
-    
-    <div id="comboPopup"></div>
-    
-    <div id="message">HOLD TO GROW • RELEASE TO SHRINK</div>
-    
-    <div id="themeUnlock">
-        <h2>🎨 THEME UNLOCKED</h2>
-        <p id="unlockedThemeName"></p>
-    </div>
-    
-    <div id="gameOver">
-        <h1>GAME OVER</h1>
-        <div id="newHighScore">⭐ NEW HIGH SCORE! ⭐</div>
-        <p>SCORE: <span id="finalScore">0</span></p>
-        <p>BEST: <span id="bestScore">0</span></p>
-        <div id="restartHint">TAP TO RESTART</div>
-    </div>
-    
-    <script src="game.js"></script>
-</body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+        <title>Pulse</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                background: #0a0a0f;
+                overflow: hidden;
+                touch-action: none;
+                user-select: none;
+                -webkit-user-select: none;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            }
+
+            #gameCanvas {
+                display: block;
+                margin: 0 auto;
+            }
+
+            #ui {
+                position: absolute;
+                top: 20px;
+                left: 0;
+                right: 0;
+                text-align: center;
+                color: #fff;
+                font-size: 24px;
+                font-weight: 300;
+                letter-spacing: 2px;
+                pointer-events: none;
+                z-index: 10;
+            }
+
+            #score {
+                font-size: 48px;
+                font-weight: 100;
+            }
+
+            #multiplier {
+                font-size: 18px;
+                color: #ffcc00;
+                opacity: 0;
+                transition: opacity 0.3s;
+                margin-top: 5px;
+            }
+
+            #multiplier.active {
+                opacity: 1;
+            }
+
+            #highScore {
+                font-size: 14px;
+                opacity: 0.5;
+                margin-top: 5px;
+            }
+
+            #powerupIndicator {
+                position: absolute;
+                top: 120px;
+                left: 0;
+                right: 0;
+                text-align: center;
+                pointer-events: none;
+            }
+
+            .powerup-active {
+                display: inline-block;
+                padding: 5px 15px;
+                margin: 5px;
+                border-radius: 20px;
+                font-size: 12px;
+                letter-spacing: 1px;
+                animation: powerupPulse 1s infinite;
+            }
+
+            @keyframes powerupPulse {
+                0%,
+                100% {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+                50% {
+                    opacity: 0.7;
+                    transform: scale(1.05);
+                }
+            }
+
+            #message {
+                position: absolute;
+                bottom: 100px;
+                left: 0;
+                right: 0;
+                text-align: center;
+                color: rgba(255, 255, 255, 0.6);
+                font-size: 16px;
+                letter-spacing: 1px;
+                pointer-events: none;
+            }
+
+            #gameOver {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                color: #fff;
+                display: none;
+                pointer-events: none;
+                z-index: 20;
+            }
+
+            #gameOver h1 {
+                font-size: 36px;
+                font-weight: 100;
+                margin-bottom: 20px;
+                letter-spacing: 4px;
+            }
+
+            #gameOver p {
+                font-size: 18px;
+                opacity: 0.7;
+                margin-bottom: 10px;
+            }
+
+            #newHighScore {
+                color: #ffcc00;
+                font-size: 14px;
+                letter-spacing: 2px;
+                margin-bottom: 15px;
+                display: none;
+            }
+
+            #restartHint {
+                font-size: 14px;
+                opacity: 0.4;
+                margin-top: 30px;
+            }
+
+            #themeUnlock {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                color: #fff;
+                display: none;
+                pointer-events: none;
+                z-index: 25;
+                animation: unlockPop 0.5s ease-out;
+            }
+
+            @keyframes unlockPop {
+                0% {
+                    transform: translate(-50%, -50%) scale(0);
+                    opacity: 0;
+                }
+                50% {
+                    transform: translate(-50%, -50%) scale(1.2);
+                }
+                100% {
+                    transform: translate(-50%, -50%) scale(1);
+                    opacity: 1;
+                }
+            }
+
+            #themeUnlock h2 {
+                font-size: 24px;
+                font-weight: 100;
+                letter-spacing: 3px;
+                margin-bottom: 10px;
+            }
+
+            #themeUnlock p {
+                font-size: 16px;
+                opacity: 0.8;
+            }
+
+            #comboPopup {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                font-size: 32px;
+                font-weight: 100;
+                letter-spacing: 4px;
+                color: #ffcc00;
+                pointer-events: none;
+                opacity: 0;
+                z-index: 15;
+            }
+        </style>
+    </head>
+    <body>
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="ui">
+            <div id="score">0</div>
+            <div id="multiplier">x1</div>
+            <div id="highScore">BEST: 0</div>
+        </div>
+
+        <div id="powerupIndicator"></div>
+
+        <div id="comboPopup"></div>
+
+        <div id="message">HOLD TO GROW • RELEASE TO SHRINK</div>
+
+        <div id="themeUnlock">
+            <h2>🎨 THEME UNLOCKED</h2>
+            <p id="unlockedThemeName"></p>
+        </div>
+
+        <div id="gameOver">
+            <h1>GAME OVER</h1>
+            <div id="newHighScore">⭐ NEW HIGH SCORE! ⭐</div>
+            <p>SCORE: <span id="finalScore">0</span></p>
+            <p>BEST: <span id="bestScore">0</span></p>
+            <div id="restartHint">TAP TO RESTART</div>
+        </div>
+
+        <script type="module" src="src/main.js"></script>
+    </body>
 </html>
