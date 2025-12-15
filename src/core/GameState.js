@@ -30,7 +30,7 @@ export class GameState {
         // Difficulty
         this.difficulty = 1;
         this.patternMode = 'normal';
-        this.nextPatternChange = 25;  // First pattern change at score 25 (was 15)
+        this.nextPatternChange = 25; // First pattern change at score 25 (was 15)
 
         // Combo system
         this.combo = 0;
@@ -110,22 +110,22 @@ export class GameState {
     updateDifficulty() {
         // More gradual difficulty scaling
         const scoreForDifficulty = Math.max(0, this.score - 5); // First 5 rings are easy
-        
-        this.difficulty = 1 + scoreForDifficulty * 0.08;  // Slower difficulty ramp (was 0.12)
-        this.ringSpeed = GAME_CONFIG.BASE_RING_SPEED + scoreForDifficulty * 0.04;  // Slower speed increase (was 0.06)
-        this.ringSpawnInterval = Math.max(800, GAME_CONFIG.RING_SPAWN_INTERVAL_BASE - scoreForDifficulty * 20);  // Slower spawn rate increase
+
+        this.difficulty = 1 + scoreForDifficulty * 0.08; // Slower difficulty ramp (was 0.12)
+        this.ringSpeed = GAME_CONFIG.BASE_RING_SPEED + scoreForDifficulty * 0.04; // Slower speed increase (was 0.06)
+        this.ringSpawnInterval = Math.max(800, GAME_CONFIG.RING_SPAWN_INTERVAL_BASE - scoreForDifficulty * 20); // Slower spawn rate increase
 
         // Pattern mode changes - delayed and more gradual
         if (this.score >= this.nextPatternChange) {
             if (this.patternMode === 'normal') {
                 this.patternMode = 'double';
-                this.nextPatternChange = this.score + 20;  // Was 15
+                this.nextPatternChange = this.score + 20; // Was 15
             } else if (this.patternMode === 'double') {
                 this.patternMode = 'moving';
-                this.nextPatternChange = this.score + 25;  // Was 20
+                this.nextPatternChange = this.score + 25; // Was 20
             } else {
                 this.patternMode = 'normal';
-                this.nextPatternChange = this.score + 15;  // Was 10
+                this.nextPatternChange = this.score + 15; // Was 10
             }
         }
     }
