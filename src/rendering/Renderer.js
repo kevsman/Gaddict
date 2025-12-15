@@ -220,11 +220,12 @@ export class Renderer {
         ctx.globalAlpha = 1;
     }
 
-    drawPlayer(playerSize, colors, hasShield, autoSizeActive, targetSize, isHolding, isPlaying) {
+    drawPlayer(playerSize, colors, hasShield, autoSizeActive, targetSize, isHolding, isPlaying, pulseScale = 1) {
         const ctx = this.ctx;
         const time = Date.now() * 0.003;
-        const breathe = Math.sin(time) * 0.1 + 1;
-        const pulseGlow = Math.sin(time * 2) * 0.3 + 0.7;
+
+        // Apply satisfaction pulse to player size
+        const pulsedSize = playerSize * pulseScale;
 
         // Shield effect - dramatic golden aura
         if (hasShield) {
@@ -250,12 +251,13 @@ export class Renderer {
             ctx.globalAlpha = 1;
 
             // Shield glow layers
+            const shieldPulse = Math.sin(time * 2) * 0.3 + 0.7;
             for (let i = 3; i >= 0; i--) {
                 const radius = playerSize + 15 + i * 10;
                 const alpha = 0.15 - i * 0.03;
                 ctx.beginPath();
                 ctx.arc(this.centerX, this.centerY, radius, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(255, 215, 0, ${alpha * pulseGlow})`;
+                ctx.fillStyle = `rgba(255, 215, 0, ${alpha * shieldPulse})`;
                 ctx.fill();
             }
 
@@ -290,12 +292,9 @@ export class Renderer {
             ctx.globalAlpha = 1;
         }
 
-        // Soft glow around player
-        const glowSize = playerSize + 25;
-        const glowGradient = ctx.createRadialGradient(
-            this.centerX, this.centerY, playerSize * 0.5,
-            this.centerX, this.centerY, glowSize
-        );
+        // Soft glow around player - uses pulsed size
+        const glowSize = pulsedSize + 25 + (pulseScale - 1) * 30; // Extra glow on pulse
+        const glowGradient = ctx.createRadialGradient(this.centerX, this.centerY, pulsedSize * 0.5, this.centerX, this.centerY, glowSize);
         glowGradient.addColorStop(0, colors.playerGlow);
         glowGradient.addColorStop(1, 'transparent');
         ctx.beginPath();
@@ -303,21 +302,28 @@ export class Renderer {
         ctx.fillStyle = glowGradient;
         ctx.fill();
 
+        // Pulse flash effect - bright ring on pulse
+        if (pulseScale > 1.01) {
+            const flashAlpha = (pulseScale - 1) * 4; // Brighter when pulsing more
+            ctx.beginPath();
+            ctx.arc(this.centerX, this.centerY, pulsedSize + 5, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(flashAlpha, 0.6)})`;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
         // Main player circle - clean solid color with subtle edge
         ctx.beginPath();
-        ctx.arc(this.centerX, this.centerY, playerSize, 0, Math.PI * 2);
+        ctx.arc(this.centerX, this.centerY, pulsedSize, 0, Math.PI * 2);
         ctx.fillStyle = colors.player;
         ctx.fill();
 
         // Subtle lighter edge highlight
-        const edgeGradient = ctx.createRadialGradient(
-            this.centerX, this.centerY, playerSize * 0.7,
-            this.centerX, this.centerY, playerSize
-        );
+        const edgeGradient = ctx.createRadialGradient(this.centerX, this.centerY, pulsedSize * 0.7, this.centerX, this.centerY, pulsedSize);
         edgeGradient.addColorStop(0, 'transparent');
         edgeGradient.addColorStop(1, 'rgba(255, 255, 255, 0.15)');
         ctx.beginPath();
-        ctx.arc(this.centerX, this.centerY, playerSize, 0, Math.PI * 2);
+        ctx.arc(this.centerX, this.centerY, pulsedSize, 0, Math.PI * 2);
         ctx.fillStyle = edgeGradient;
         ctx.fill();
 
@@ -325,7 +331,7 @@ export class Renderer {
         if (isHolding && isPlaying && !autoSizeActive) {
             const expandPulse = (Date.now() % 500) / 500;
             ctx.beginPath();
-            ctx.arc(this.centerX, this.centerY, playerSize + expandPulse * 15, 0, Math.PI * 2);
+            ctx.arc(this.centerX, this.centerY, pulsedSize + expandPulse * 15, 0, Math.PI * 2);
             ctx.strokeStyle = `rgba(255, 255, 255, ${0.6 - expandPulse * 0.6})`;
             ctx.lineWidth = 3 - expandPulse * 2;
             ctx.stroke();

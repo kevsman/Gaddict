@@ -50,6 +50,10 @@ export class GameState {
         this.pulseEffect = 0;
         this.backgroundPulse = 0;
 
+        // Satisfaction pulse (when clearing rings)
+        this.satisfactionPulse = 0;      // Current pulse amount (0-1)
+        this.satisfactionPulseType = 0;  // 0 = normal, 1 = perfect, 2 = combo
+
         // Powerup progress orbs
         this.powerupProgress = 0; // Rings passed toward next powerup
         this.powerupOrbs = []; // Visual orbs spiraling inward
@@ -143,6 +147,35 @@ export class GameState {
         this.combo = 0;
         this.perfectStreak = 0;
         this.multiplier = this.doublePointsActive ? 2 : 1;
+    }
+
+    // Satisfaction pulse system
+    triggerPulse(type = 0) {
+        // type: 0 = normal, 1 = perfect, 2 = combo
+        this.satisfactionPulse = 1;
+        this.satisfactionPulseType = type;
+    }
+
+    updatePulse() {
+        if (this.satisfactionPulse > 0) {
+            // Fast decay for snappy feel
+            this.satisfactionPulse *= 0.85;
+            if (this.satisfactionPulse < 0.01) {
+                this.satisfactionPulse = 0;
+            }
+        }
+    }
+
+    getPulseScale() {
+        if (this.satisfactionPulse <= 0) return 1;
+        
+        // Different pulse intensities based on type
+        const intensity = this.satisfactionPulseType === 2 ? 0.25 : 
+                         this.satisfactionPulseType === 1 ? 0.15 : 0.08;
+        
+        // Quick pop out then back - use easing for snappy feel
+        const eased = Math.sin(this.satisfactionPulse * Math.PI);
+        return 1 + eased * intensity;
     }
 
     // Powerup progress orb system

@@ -235,6 +235,9 @@ export class Game {
         // Update powerup progress orbs
         this.state.updatePowerupOrbs();
 
+        // Update satisfaction pulse
+        this.state.updatePulse();
+
         // Smooth score display
         if (this.state.displayScore < this.state.score) {
             this.state.displayScore += Math.ceil((this.state.score - this.state.displayScore) * 0.2);
@@ -303,11 +306,17 @@ export class Game {
                     this.state.addScore(1);
                     this.ui.updateMultiplier(this.state.multiplier, this.state.multiplier > 1);
 
+                    // Trigger satisfaction pulse
                     if (this.state.combo > 0 && this.state.combo % 5 === 0) {
                         this.ui.showComboPopup(`🔥 ${this.state.combo} COMBO!`);
                         sound.play('combo');
                         haptic.medium();
+                        this.state.triggerPulse(2); // Combo pulse (biggest)
+                    } else if (isPerfect) {
+                        this.state.triggerPulse(1); // Perfect pulse (medium)
+                        haptic.light();
                     } else {
+                        this.state.triggerPulse(0); // Normal pulse (small)
                         haptic.light();
                     }
 
@@ -390,7 +399,8 @@ export class Game {
             this.state.autoSizeActive,
             this.state.targetSize,
             this.state.isHolding,
-            this.state.isPlaying
+            this.state.isPlaying,
+            this.state.getPulseScale()
         );
 
         // Slow time effect
