@@ -191,72 +191,121 @@ export class Renderer {
 
         const ctx = this.ctx;
         const time = Date.now() * 0.008;
-        const pulseSize = Math.sin(powerup.pulsePhase) * 8;
-        const spinAngle = time * 2;
+        const pulseSize = Math.sin(powerup.pulsePhase) * 6;
 
-        // Outer energy field - ensure inner radius is never negative
-        const innerRadius = Math.max(0, powerup.radius - 30);
-        const outerRadius = powerup.radius + 40;
+        // Outer energy glow - ensure inner radius is never negative
+        const innerRadius = Math.max(0, powerup.radius - 25);
+        const outerRadius = powerup.radius + 30;
         const energyGlow = ctx.createRadialGradient(this.centerX, this.centerY, innerRadius, this.centerX, this.centerY, outerRadius);
         energyGlow.addColorStop(0, 'transparent');
-        energyGlow.addColorStop(0.5, powerup.color.replace(')', ', 0.15)').replace('rgb', 'rgba'));
+        energyGlow.addColorStop(0.5, powerup.color.replace(')', ', 0.2)').replace('rgb', 'rgba'));
         energyGlow.addColorStop(1, 'transparent');
         ctx.fillStyle = energyGlow;
         ctx.fillRect(0, 0, this.width, this.height);
 
-        // Spinning particle trail
+        // Spinning sparkles on the ring
         ctx.save();
         ctx.translate(this.centerX, this.centerY);
-        for (let i = 0; i < 8; i++) {
-            const angle = spinAngle + (i * Math.PI * 2) / 8;
+        for (let i = 0; i < 6; i++) {
+            const angle = time * 2 + (i * Math.PI * 2) / 6;
             const x = Math.cos(angle) * powerup.radius;
             const y = Math.sin(angle) * powerup.radius;
-            const sparkSize = 4 + Math.sin(time * 3 + i) * 2;
+            const sparkSize = 5 + Math.sin(time * 3 + i) * 2;
 
             ctx.beginPath();
             ctx.arc(x, y, sparkSize, 0, Math.PI * 2);
-            ctx.fillStyle = powerup.color;
+            ctx.fillStyle = '#fff';
             ctx.shadowColor = powerup.color;
             ctx.shadowBlur = 15;
-            ctx.globalAlpha = 0.8;
             ctx.fill();
         }
         ctx.restore();
         ctx.shadowBlur = 0;
 
-        // Powerup ring with glow
+        // Main powerup ring - thick, solid, and glowy (no dashed line)
         ctx.beginPath();
         ctx.arc(this.centerX, this.centerY, powerup.radius, 0, Math.PI * 2);
         ctx.strokeStyle = powerup.color;
-        ctx.lineWidth = 6 + pulseSize;
-        ctx.globalAlpha = 0.7 + Math.sin(powerup.pulsePhase) * 0.3;
+        ctx.lineWidth = 10 + pulseSize;
+        ctx.globalAlpha = 0.9;
         ctx.shadowColor = powerup.color;
-        ctx.shadowBlur = 25;
-        ctx.setLineDash([15, 8]);
-        ctx.lineDashOffset = -Date.now() * 0.05;
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.shadowBlur = 0;
-
-        // Inner target indicator
-        ctx.beginPath();
-        ctx.arc(this.centerX, this.centerY, powerup.size, 0, Math.PI * 2);
-        ctx.strokeStyle = powerup.color;
-        ctx.lineWidth = 3;
-        ctx.globalAlpha = 0.5 + Math.sin(time * 4) * 0.2;
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 20;
         ctx.stroke();
         ctx.shadowBlur = 0;
 
         ctx.globalAlpha = 1;
     }
 
-    drawPlayer(playerSize, colors, hasShield, autoSizeActive, targetSize, isHolding, isPlaying, pulseScale = 1) {
+    drawPlayer(playerSize, colors, hasShield, ghostActive, tinyModeActive, magnetizeActive, isHolding, isPlaying, pulseScale = 1) {
         const ctx = this.ctx;
         const time = Date.now() * 0.003;
 
         // Apply satisfaction pulse to player size
         const pulsedSize = playerSize * pulseScale;
+
+        // Ghost mode effect - ethereal appearance
+        if (ghostActive) {
+            // Ghostly trail rings
+            for (let i = 3; i >= 0; i--) {
+                const trailSize = pulsedSize + i * 8;
+                ctx.beginPath();
+                ctx.arc(this.centerX, this.centerY, trailSize, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(136, 204, 255, ${0.1 - i * 0.02})`;
+                ctx.fill();
+            }
+            
+            // Floating ghost particles
+            ctx.save();
+            ctx.translate(this.centerX, this.centerY);
+            for (let i = 0; i < 8; i++) {
+                const angle = time * 0.8 + (i * Math.PI * 2) / 8;
+                const dist = pulsedSize + 15 + Math.sin(time * 2 + i) * 8;
+                const x = Math.cos(angle) * dist;
+                const y = Math.sin(angle) * dist - Math.sin(time * 3 + i) * 5;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 3 + Math.sin(time * 2 + i), 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(136, 204, 255, ${0.5 + Math.sin(time + i) * 0.2})`;
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // Magnetize effect - attraction waves
+        if (magnetizeActive) {
+            const wavePulse = (Date.now() % 1000) / 1000;
+            for (let i = 0; i < 3; i++) {
+                const waveOffset = (wavePulse + i * 0.33) % 1;
+                const waveRadius = pulsedSize + 20 + waveOffset * 60;
+                ctx.beginPath();
+                ctx.arc(this.centerX, this.centerY, waveRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255, 105, 180, ${0.4 * (1 - waveOffset)})`;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+        }
+
+        // Tiny mode effect - sparkly shrink aura
+        if (tinyModeActive) {
+            // Shrinking particles converging to center
+            ctx.save();
+            ctx.translate(this.centerX, this.centerY);
+            for (let i = 0; i < 6; i++) {
+                const angle = time * 1.5 + (i * Math.PI * 2) / 6;
+                const dist = pulsedSize + 10 + Math.sin(time * 4 + i) * 5;
+                const x = Math.cos(angle) * dist;
+                const y = Math.sin(angle) * dist;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 2 + Math.sin(time * 3 + i), 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 107, 107, ${0.7 + Math.sin(time + i) * 0.2})`;
+                ctx.shadowColor = '#ff6b6b';
+                ctx.shadowBlur = 8;
+                ctx.fill();
+            }
+            ctx.restore();
+            ctx.shadowBlur = 0;
+        }
 
         // Shield effect - dramatic golden aura
         if (hasShield) {
@@ -306,23 +355,6 @@ export class Renderer {
             ctx.shadowBlur = 0;
         }
 
-        // Auto-size indicator with glow
-        if (autoSizeActive) {
-            ctx.beginPath();
-            ctx.arc(this.centerX, this.centerY, targetSize, 0, Math.PI * 2);
-            ctx.strokeStyle = POWERUP_TYPES.autoSize.color;
-            ctx.lineWidth = 3;
-            ctx.globalAlpha = 0.6 + Math.sin(time * 4) * 0.3;
-            ctx.shadowColor = POWERUP_TYPES.autoSize.color;
-            ctx.shadowBlur = 15;
-            ctx.setLineDash([8, 4]);
-            ctx.lineDashOffset = -Date.now() * 0.02;
-            ctx.stroke();
-            ctx.setLineDash([]);
-            ctx.shadowBlur = 0;
-            ctx.globalAlpha = 1;
-        }
-
         // Soft glow around player - uses pulsed size
         const glowSize = pulsedSize + 25 + (pulseScale - 1) * 30; // Extra glow on pulse
         const glowGradient = ctx.createRadialGradient(this.centerX, this.centerY, pulsedSize * 0.5, this.centerX, this.centerY, glowSize);
@@ -359,7 +391,7 @@ export class Renderer {
         ctx.fill();
 
         // Holding indicator - pulsing expansion ring
-        if (isHolding && isPlaying && !autoSizeActive) {
+        if (isHolding && isPlaying && !tinyModeActive) {
             const expandPulse = (Date.now() % 500) / 500;
             ctx.beginPath();
             ctx.arc(this.centerX, this.centerY, pulsedSize + expandPulse * 15, 0, Math.PI * 2);

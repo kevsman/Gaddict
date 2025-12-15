@@ -42,8 +42,10 @@ export class GameState {
         this.activePowerups = {};
         this.hasShield = false;
         this.slowTimeActive = false;
-        this.autoSizeActive = false;
+        this.tinyModeActive = false;
         this.doublePointsActive = false;
+        this.magnetizeActive = false;
+        this.ghostActive = false;
 
         // Visual effects
         this.screenShake = 0;
@@ -66,7 +68,7 @@ export class GameState {
     }
 
     pickNextPowerup() {
-        const types = ['slowTime', 'shield', 'autoSize', 'doublePoints'];
+        const types = ['slowTime', 'shield', 'tinyMode', 'doublePoints', 'magnetize', 'ghost'];
         return types[Math.floor(Math.random() * types.length)];
     }
 

@@ -121,11 +121,11 @@ export class Game {
         this.state.powerups.push(powerup);
         this.state.consumePowerupProgress();
 
-        // Visual feedback
+        // Visual feedback - show the powerup name!
         sound.play('combo');
         haptic.medium();
         const powerupInfo = POWERUP_TYPES[powerup.type];
-        this.ui.showComboPopup(powerupInfo.icon + ' INCOMING!');
+        this.ui.showComboPopup(powerupInfo.icon + ' ' + powerupInfo.name + ' INCOMING!');
 
         // Burst particles at the icon location
         this.particles.burst(this.renderer.width - 60, 80, '#ffd700', 15, {
@@ -153,18 +153,20 @@ export class Game {
 
         sound.play('powerup');
         haptic.success();
-        
-        // Exciting activation messages
+
+        // Exciting activation messages for each powerup
         const activationMessages = {
             slowTime: ['⏱️ TIME SLOWED!', '⏱️ MATRIX MODE!', '⏱️ SLOW-MO!'],
             shield: ['🛡️ PROTECTED!', '🛡️ SHIELD UP!', '🛡️ INVINCIBLE!'],
-            autoSize: ['🎯 AUTO-AIM!', '🎯 LOCK ON!', '🎯 PERFECT FIT!'],
-            doublePoints: ['⭐ 2X POINTS!', '⭐ DOUBLE UP!', '⭐ BONUS MODE!']
+            tinyMode: ['🔬 TINY MODE!', '🔬 SHRINK RAY!', '🔬 MINI ME!'],
+            doublePoints: ['⭐ 2X POINTS!', '⭐ DOUBLE UP!', '⭐ BONUS MODE!'],
+            magnetize: ['🧲 MAGNETIZED!', '🧲 ATTRACTION!', '🧲 PULL POWER!'],
+            ghost: ['👻 GHOST MODE!', '👻 PHASING!', '👻 UNTOUCHABLE!'],
         };
         const messages = activationMessages[type] || [powerupInfo.icon + ' ' + powerupInfo.name];
         const message = messages[Math.floor(Math.random() * messages.length)];
         this.ui.showComboPopup(message);
-        
+
         // Trigger a satisfaction pulse for the powerup
         this.state.triggerPulse(2); // Type 2 = combo/powerup pulse (biggest)
 
@@ -177,13 +179,21 @@ export class Game {
                 this.state.hasShield = true;
                 sound.play('shield');
                 break;
-            case 'autoSize':
-                this.state.autoSizeActive = true;
-                this.state.activePowerups.autoSize = Date.now() + powerupInfo.duration;
+            case 'tinyMode':
+                this.state.tinyModeActive = true;
+                this.state.activePowerups.tinyMode = Date.now() + powerupInfo.duration;
                 break;
             case 'doublePoints':
                 this.state.doublePointsActive = true;
                 this.state.activePowerups.doublePoints = Date.now() + powerupInfo.duration;
+                break;
+            case 'magnetize':
+                this.state.magnetizeActive = true;
+                this.state.activePowerups.magnetize = Date.now() + powerupInfo.duration;
+                break;
+            case 'ghost':
+                this.state.ghostActive = true;
+                this.state.activePowerups.ghost = Date.now() + powerupInfo.duration;
                 break;
         }
 
@@ -196,7 +206,7 @@ export class Game {
             minSize: 4,
             maxSize: 10,
         });
-        
+
         // Extra white sparkle burst
         this.particles.burst(this.renderer.centerX, this.renderer.centerY, '#ffffff', 15, {
             minSpeed: 4,
@@ -214,14 +224,24 @@ export class Game {
             delete this.state.activePowerups.slowTime;
         }
 
-        if (this.state.activePowerups.autoSize && now > this.state.activePowerups.autoSize) {
-            this.state.autoSizeActive = false;
-            delete this.state.activePowerups.autoSize;
+        if (this.state.activePowerups.tinyMode && now > this.state.activePowerups.tinyMode) {
+            this.state.tinyModeActive = false;
+            delete this.state.activePowerups.tinyMode;
         }
 
         if (this.state.activePowerups.doublePoints && now > this.state.activePowerups.doublePoints) {
             this.state.doublePointsActive = false;
             delete this.state.activePowerups.doublePoints;
+        }
+
+        if (this.state.activePowerups.magnetize && now > this.state.activePowerups.magnetize) {
+            this.state.magnetizeActive = false;
+            delete this.state.activePowerups.magnetize;
+        }
+
+        if (this.state.activePowerups.ghost && now > this.state.activePowerups.ghost) {
+            this.state.ghostActive = false;
+            delete this.state.activePowerups.ghost;
         }
 
         this.ui.updatePowerupIndicator(this.state.activePowerups, this.state.hasShield, POWERUP_TYPES);
@@ -290,17 +310,13 @@ export class Game {
         }
 
         // Player size control
-        if (this.state.autoSizeActive && this.state.rings.length > 0) {
-            const nearestRing = this.state.rings.find((r) => !r.passed && r.radius > 0);
-            if (nearestRing && nearestRing.radius < 300) {
-                this.state.targetSize = nearestRing.requiredSize;
-            }
+        if (this.state.tinyModeActive) {
+            // Tiny mode: force minimum size
+            this.state.targetSize = GAME_CONFIG.MIN_PLAYER_SIZE;
+        } else if (this.state.isHolding) {
+            this.state.targetSize = Math.min(GAME_CONFIG.MAX_PLAYER_SIZE, this.state.targetSize + GAME_CONFIG.PLAYER_GROW_SPEED);
         } else {
-            if (this.state.isHolding) {
-                this.state.targetSize = Math.min(GAME_CONFIG.MAX_PLAYER_SIZE, this.state.targetSize + GAME_CONFIG.PLAYER_GROW_SPEED);
-            } else {
-                this.state.targetSize = Math.max(GAME_CONFIG.MIN_PLAYER_SIZE, this.state.targetSize - GAME_CONFIG.PLAYER_SHRINK_SPEED);
-            }
+            this.state.targetSize = Math.max(GAME_CONFIG.MIN_PLAYER_SIZE, this.state.targetSize - GAME_CONFIG.PLAYER_SHRINK_SPEED);
         }
 
         this.state.playerSize += (this.state.targetSize - this.state.playerSize) * 0.15;
@@ -328,8 +344,19 @@ export class Game {
             ring.update(effectiveSpeed);
 
             if (ring.isAtPlayer(this.state.playerSize)) {
+                // Ghost mode: always pass through
+                // Magnetize: rings adjust their gap to fit player
                 // God mode: auto-fit the ring
-                const fitsGap = this.godMode || ring.playerFitsGap(this.state.playerSize);
+                let fitsGap = this.godMode || this.state.ghostActive || ring.playerFitsGap(this.state.playerSize);
+                
+                // Magnetize makes rings easier - widen the gap temporarily
+                if (this.state.magnetizeActive && !fitsGap) {
+                    // Check if player is close to fitting
+                    const sizeDiff = Math.abs(this.state.playerSize - ring.requiredSize);
+                    if (sizeDiff < 25) {
+                        fitsGap = true; // Magnetize pulls you through!
+                    }
+                }
 
                 if (fitsGap) {
                     // Success
@@ -378,7 +405,7 @@ export class Game {
                         isPerfect ? 25 : 12
                     );
                 } else {
-                    // Fail
+                    // Fail - but ghost mode already handled above
                     if (this.state.hasShield) {
                         this.state.hasShield = false;
                         ring.markPassed('#ffd700');
@@ -443,8 +470,9 @@ export class Game {
             this.state.playerSize,
             colors,
             this.state.hasShield,
-            this.state.autoSizeActive,
-            this.state.targetSize,
+            this.state.ghostActive,
+            this.state.tinyModeActive,
+            this.state.magnetizeActive,
             this.state.isHolding,
             this.state.isPlaying,
             this.state.getPulseScale()

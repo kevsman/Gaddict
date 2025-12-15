@@ -22,10 +22,9 @@ export class Powerup {
     checkCollection(playerSize) {
         if (this.collected) return false;
 
-        const diff = Math.abs(this.radius - playerSize);
-        const sizeDiff = Math.abs(playerSize - this.size);
-
-        if (diff < 20 && sizeDiff < 15) {
+        // Auto-collect when powerup ring reaches the player
+        // Much simpler - just touch it to collect!
+        if (this.radius <= playerSize + 15 && this.radius >= playerSize - 30) {
             this.collected = true;
             return true;
         }
