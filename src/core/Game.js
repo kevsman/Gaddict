@@ -28,7 +28,7 @@ export class Game {
 
         this.lastTime = 0;
         this.godMode = false; // Debug: auto-clear rings
-        
+
         // Camera effects
         this.screenShake = 0;
         this.cameraZoom = 1;
@@ -205,7 +205,7 @@ export class Game {
                 this.state.freezeActive = true;
                 this.state.activePowerups.freeze = Date.now() + powerupInfo.duration;
                 break;
-            
+
             // SIZE
             case 'tinyMode':
                 this.state.tinyModeActive = true;
@@ -219,7 +219,7 @@ export class Game {
                 this.state.activePowerups.giantMode = Date.now() + powerupInfo.duration;
                 delete this.state.activePowerups.tinyMode;
                 break;
-            
+
             // SCORING
             case 'doublePoints':
                 this.state.doublePointsActive = true;
@@ -239,7 +239,7 @@ export class Game {
                 this.state.comboKeeperActive = true;
                 this.state.activePowerups.comboKeeper = Date.now() + powerupInfo.duration;
                 break;
-            
+
             // ASSIST
             case 'magnetize':
                 this.state.magnetizeActive = true;
@@ -249,7 +249,7 @@ export class Game {
                 this.state.wideGapActive = true;
                 this.state.activePowerups.wideGap = Date.now() + powerupInfo.duration;
                 break;
-            
+
             // SPECIAL (instant effects)
             case 'clearRings':
                 // Clear all rings on screen!
@@ -470,7 +470,7 @@ export class Game {
                 // Magnetize: rings adjust their gap to fit player
                 // God mode: auto-fit the ring
                 let fitsGap = this.godMode || this.state.ghostActive || ring.playerFitsGap(this.state.playerSize);
-                
+
                 // Magnetize makes rings easier - widen the gap temporarily
                 if (this.state.magnetizeActive && !fitsGap) {
                     const sizeDiff = Math.abs(this.state.playerSize - ring.requiredSize);
@@ -482,10 +482,10 @@ export class Game {
                 if (fitsGap) {
                     // Success
                     let isPerfect = this.godMode ? Math.random() > 0.5 : ring.isPerfectPass(this.state.playerSize);
-                    
+
                     // Perfect streak powerup - all passes are perfect!
                     if (this.state.perfectStreakActive) isPerfect = true;
-                    
+
                     ring.markPassed(colors.ringPassed);
 
                     if (isPerfect) {
@@ -503,7 +503,7 @@ export class Game {
                     let points = 1;
                     if (this.state.triplePointsActive) points *= 3;
                     else if (this.state.doublePointsActive) points *= 2;
-                    
+
                     this.state.addScore(points);
                     this.ui.updateMultiplier(this.state.multiplier, this.state.multiplier > 1);
 
@@ -625,7 +625,7 @@ export class Game {
 
         // Slow time / freeze effect
         this.renderer.drawSlowTimeEffect(this.state.slowTimeActive, this.state.freezeActive);
-        
+
         // Rainbow mode effect
         if (this.state.rainbowActive) {
             this.renderer.drawRainbowEffect();

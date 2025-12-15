@@ -4,7 +4,7 @@ export class SoundSystem {
         this.audioContext = null;
         this.enabled = true;
         this.initialized = false;
-        
+
         // Music System
         this.musicPlaying = false;
         this.currentCombo = 0;
@@ -29,7 +29,7 @@ export class SoundSystem {
     startMusic() {
         if (!this.enabled || !this.audioContext) return;
         if (this.musicPlaying) return;
-        
+
         this.musicPlaying = true;
         this.nextNoteTime = this.audioContext.currentTime + 0.1;
         this.beatCount = 0;
@@ -47,7 +47,7 @@ export class SoundSystem {
 
     scheduleMusic() {
         if (!this.musicPlaying || !this.audioContext) return;
-        
+
         const secondsPerBeat = 60.0 / this.bpm;
         const lookahead = 25.0; // ms
         const scheduleAheadTime = 0.1; // sec
@@ -67,7 +67,7 @@ export class SoundSystem {
         if (t < 0) return; // Don't play in the past
 
         const measureBeat = beat % 16; // 0-15 (16th notes in a 4/4 measure)
-        const quarterBeat = beat % 4;  // 0-3
+        const quarterBeat = beat % 4; // 0-3
 
         // Layer 1: Bass (Always active, gets more complex)
         // Simple pulse on every beat

@@ -32,23 +32,22 @@ export class UIManager {
 
             // Dynamic styling
             // Grow font size with multiplier
-            const size = Math.min(20 + (multiplier * 0.5), 40);
+            const size = Math.min(20 + multiplier * 0.5, 40);
             this.elements.multiplier.style.fontSize = `${size}px`;
-            
+
             // Fire effect at 50x
             if (multiplier >= 50) {
                 this.elements.multiplier.classList.add('on-fire');
             } else {
                 this.elements.multiplier.classList.remove('on-fire');
             }
-            
+
             // Font weight
             if (multiplier >= 20) {
                 this.elements.multiplier.style.fontWeight = '900';
             } else {
                 this.elements.multiplier.style.fontWeight = '500';
             }
-
         } else {
             this.elements.multiplier.classList.remove('active');
             this.elements.multiplier.classList.remove('on-fire');
