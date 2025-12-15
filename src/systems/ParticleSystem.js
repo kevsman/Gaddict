@@ -32,7 +32,7 @@ export class ParticleSystem {
                 rotationSpeed: (Math.random() - 0.5) * 0.3,
             });
         }
-        
+
         // Add some extra tiny sparkles
         for (let i = 0; i < count / 2; i++) {
             const angle = Math.random() * Math.PI * 2;
@@ -74,7 +74,7 @@ export class ParticleSystem {
                 sparkle: i % 3 === 0,
             });
         }
-        
+
         // Inner sparkle ring
         for (let i = 0; i < count / 2; i++) {
             const angle = Math.random() * Math.PI * 2;
@@ -116,17 +116,17 @@ export class ParticleSystem {
     draw(ctx) {
         for (const p of this.particles) {
             ctx.save();
-            
+
             if (p.sparkle) {
                 // Draw sparkle as a 4-point star
                 ctx.translate(p.x, p.y);
                 ctx.rotate(p.rotation || Date.now() * 0.01);
-                
+
                 ctx.shadowColor = p.color;
                 ctx.shadowBlur = 15 * p.life;
                 ctx.fillStyle = p.color;
                 ctx.globalAlpha = p.life;
-                
+
                 // Star shape
                 ctx.beginPath();
                 for (let i = 0; i < 4; i++) {
@@ -136,7 +136,7 @@ export class ParticleSystem {
                     const innerAngle = angle + Math.PI / 4;
                     const innerX = Math.cos(innerAngle) * p.size * 0.5;
                     const innerY = Math.sin(innerAngle) * p.size * 0.5;
-                    
+
                     if (i === 0) {
                         ctx.moveTo(outerX, outerY);
                     } else {
@@ -146,7 +146,7 @@ export class ParticleSystem {
                 }
                 ctx.closePath();
                 ctx.fill();
-                
+
                 // Bright center
                 ctx.beginPath();
                 ctx.arc(0, 0, p.size * 0.4, 0, Math.PI * 2);
@@ -160,13 +160,13 @@ export class ParticleSystem {
                 ctx.fillStyle = p.color;
                 ctx.globalAlpha = p.life * 0.25;
                 ctx.fill();
-                
+
                 // Main particle with gradient
                 const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
                 gradient.addColorStop(0, '#ffffff');
                 gradient.addColorStop(0.3, p.color);
                 gradient.addColorStop(1, p.color);
-                
+
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
                 ctx.fillStyle = gradient;
@@ -175,7 +175,7 @@ export class ParticleSystem {
                 ctx.globalAlpha = p.life;
                 ctx.fill();
             }
-            
+
             ctx.restore();
         }
         ctx.globalAlpha = 1;

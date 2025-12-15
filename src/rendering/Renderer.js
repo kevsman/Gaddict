@@ -48,30 +48,27 @@ export class Renderer {
     drawBackgroundGrid(pulse, accentColor = '#00ffaa') {
         const ctx = this.ctx;
         const time = Date.now() * 0.001;
-        
+
         // Animated concentric rings with color gradient
         for (let r = 50; r < this.getScreenSize(); r += 80) {
             const ringPulse = Math.sin(time + r * 0.01) * 0.5 + 0.5;
             const alpha = (0.03 + pulse * 0.03 + ringPulse * 0.02) * (1 - r / this.getScreenSize());
-            
+
             ctx.beginPath();
             ctx.arc(this.centerX, this.centerY, r + Math.sin(time * 2 + r * 0.02) * 3, 0, Math.PI * 2);
             ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
             ctx.lineWidth = 1 + ringPulse;
             ctx.stroke();
         }
-        
+
         // Radial gradient glow from center
-        const centerGlow = ctx.createRadialGradient(
-            this.centerX, this.centerY, 0,
-            this.centerX, this.centerY, 200
-        );
+        const centerGlow = ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, 200);
         centerGlow.addColorStop(0, `rgba(${this.hexToRgb(accentColor)}, ${0.05 + pulse * 0.03})`);
         centerGlow.addColorStop(1, 'transparent');
         ctx.fillStyle = centerGlow;
         ctx.fillRect(0, 0, this.width, this.height);
     }
-    
+
     hexToRgb(hex) {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '255, 255, 255';
@@ -86,8 +83,12 @@ export class Renderer {
 
         // Outer glow effect
         const outerGlow = ctx.createRadialGradient(
-            this.centerX, this.centerY, ring.innerRadius - 20,
-            this.centerX, this.centerY, ring.outerRadius + 30
+            this.centerX,
+            this.centerY,
+            ring.innerRadius - 20,
+            this.centerX,
+            this.centerY,
+            ring.outerRadius + 30
         );
         outerGlow.addColorStop(0, 'transparent');
         outerGlow.addColorStop(0.3, `rgba(0, 255, 170, ${0.1 * breathe})`);
@@ -100,10 +101,7 @@ export class Renderer {
         ctx.beginPath();
         ctx.arc(this.centerX, this.centerY, ring.outerRadius, 0, Math.PI * 2);
         ctx.arc(this.centerX, this.centerY, ring.innerRadius, 0, Math.PI * 2, true);
-        const zoneGradient = ctx.createRadialGradient(
-            this.centerX, this.centerY, ring.innerRadius,
-            this.centerX, this.centerY, ring.outerRadius
-        );
+        const zoneGradient = ctx.createRadialGradient(this.centerX, this.centerY, ring.innerRadius, this.centerX, this.centerY, ring.outerRadius);
         zoneGradient.addColorStop(0, `rgba(0, 255, 170, ${0.25 * breathe})`);
         zoneGradient.addColorStop(0.5, `rgba(0, 255, 200, ${0.2 * breathe})`);
         zoneGradient.addColorStop(1, `rgba(0, 255, 170, ${0.15 * breathe})`);
@@ -163,7 +161,7 @@ export class Renderer {
         ctx.strokeStyle = ring.color;
         ctx.lineWidth = GAME_CONFIG.RING_THICKNESS + (ring.passed ? 0 : pulse * 4);
         ctx.globalAlpha = baseAlpha * (0.85 + pulse);
-        
+
         // Add shadow glow
         if (!ring.passed) {
             ctx.shadowColor = ring.color;
@@ -196,10 +194,7 @@ export class Renderer {
         const spinAngle = time * 2;
 
         // Outer energy field
-        const energyGlow = ctx.createRadialGradient(
-            this.centerX, this.centerY, powerup.radius - 30,
-            this.centerX, this.centerY, powerup.radius + 40
-        );
+        const energyGlow = ctx.createRadialGradient(this.centerX, this.centerY, powerup.radius - 30, this.centerX, this.centerY, powerup.radius + 40);
         energyGlow.addColorStop(0, 'transparent');
         energyGlow.addColorStop(0.5, powerup.color.replace(')', ', 0.15)').replace('rgb', 'rgba'));
         energyGlow.addColorStop(1, 'transparent');
@@ -214,7 +209,7 @@ export class Renderer {
             const x = Math.cos(angle) * powerup.radius;
             const y = Math.sin(angle) * powerup.radius;
             const sparkSize = 4 + Math.sin(time * 3 + i) * 2;
-            
+
             ctx.beginPath();
             ctx.arc(x, y, sparkSize, 0, Math.PI * 2);
             ctx.fillStyle = powerup.color;
@@ -269,7 +264,7 @@ export class Renderer {
                 const dist = playerSize + 20 + Math.sin(time * 3 + i) * 5;
                 const x = Math.cos(angle) * dist;
                 const y = Math.sin(angle) * dist;
-                
+
                 ctx.beginPath();
                 ctx.arc(x, y, 3 + Math.sin(time * 4 + i) * 1.5, 0, Math.PI * 2);
                 ctx.fillStyle = '#ffd700';
@@ -357,7 +352,7 @@ export class Renderer {
         playerGradient.addColorStop(0, '#ffffff');
         playerGradient.addColorStop(0.3, colors.player);
         playerGradient.addColorStop(1, this.darkenColor(colors.player, 30));
-        
+
         ctx.beginPath();
         ctx.arc(this.centerX, this.centerY, playerSize, 0, Math.PI * 2);
         ctx.fillStyle = playerGradient;
@@ -365,10 +360,7 @@ export class Renderer {
 
         // Bright inner core
         const coreSize = playerSize * 0.4;
-        const coreGradient = ctx.createRadialGradient(
-            this.centerX, this.centerY, 0,
-            this.centerX, this.centerY, coreSize
-        );
+        const coreGradient = ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, coreSize);
         coreGradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
         coreGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
         coreGradient.addColorStop(1, 'transparent');
@@ -392,8 +384,8 @@ export class Renderer {
         const num = parseInt(hex.replace('#', ''), 16);
         const amt = Math.round(2.55 * percent);
         const R = Math.max((num >> 16) - amt, 0);
-        const G = Math.max((num >> 8 & 0x00FF) - amt, 0);
-        const B = Math.max((num & 0x0000FF) - amt, 0);
+        const G = Math.max(((num >> 8) & 0x00ff) - amt, 0);
+        const B = Math.max((num & 0x0000ff) - amt, 0);
         return `rgb(${R}, ${G}, ${B})`;
     }
 
@@ -402,17 +394,14 @@ export class Renderer {
             const ctx = this.ctx;
             const time = Date.now() * 0.002;
             const pulse = Math.sin(time) * 0.02 + 0.08;
-            
+
             // Vignette effect
-            const vignette = ctx.createRadialGradient(
-                this.centerX, this.centerY, this.height * 0.3,
-                this.centerX, this.centerY, this.height * 0.8
-            );
+            const vignette = ctx.createRadialGradient(this.centerX, this.centerY, this.height * 0.3, this.centerX, this.centerY, this.height * 0.8);
             vignette.addColorStop(0, 'transparent');
             vignette.addColorStop(1, `rgba(78, 205, 196, ${pulse})`);
             ctx.fillStyle = vignette;
             ctx.fillRect(0, 0, this.width, this.height);
-            
+
             // Scan lines effect
             ctx.fillStyle = `rgba(78, 205, 196, 0.03)`;
             for (let y = 0; y < this.height; y += 4) {
@@ -420,14 +409,14 @@ export class Renderer {
                     ctx.fillRect(0, y, this.width, 2);
                 }
             }
-            
+
             // Time particles floating
             ctx.save();
             for (let i = 0; i < 15; i++) {
                 const x = (Math.sin(time + i * 0.7) * 0.5 + 0.5) * this.width;
                 const y = ((time * 0.1 + i * 0.15) % 1) * this.height;
                 const size = 2 + Math.sin(time * 2 + i) * 1;
-                
+
                 ctx.beginPath();
                 ctx.arc(x, y, size, 0, Math.PI * 2);
                 ctx.fillStyle = `rgba(78, 205, 196, ${0.4 + Math.sin(time + i) * 0.2})`;
@@ -455,18 +444,16 @@ export class Renderer {
         if (isClose) {
             const glowIntensity = isReady ? 0.5 : 0.25;
             const glowSize = isReady ? 50 : 35;
-            
+
             // Multiple glow layers
             for (let i = 3; i >= 0; i--) {
                 ctx.beginPath();
                 ctx.arc(iconX, iconY, iconSize + glowSize - i * 10, 0, Math.PI * 2);
                 const alpha = (glowIntensity - i * 0.1) * (0.7 + Math.sin(time * 3) * 0.3);
-                ctx.fillStyle = isReady 
-                    ? `rgba(255, 215, 0, ${alpha})`
-                    : `rgba(255, 200, 100, ${alpha * 0.7})`;
+                ctx.fillStyle = isReady ? `rgba(255, 215, 0, ${alpha})` : `rgba(255, 200, 100, ${alpha * 0.7})`;
                 ctx.fill();
             }
-            
+
             // Spinning rays when ready
             if (isReady) {
                 ctx.save();
@@ -520,7 +507,7 @@ export class Renderer {
                 const trailAngle = orb.angle - t * 0.15;
                 const trailX = iconX + Math.cos(trailAngle) * (orb.radius + t * 2);
                 const trailY = iconY + Math.sin(trailAngle) * (orb.radius + t * 2);
-                
+
                 ctx.beginPath();
                 ctx.arc(trailX, trailY, orb.displaySize * (1 - t * 0.2), 0, Math.PI * 2);
                 ctx.fillStyle = orb.color;
