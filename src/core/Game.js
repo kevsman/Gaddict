@@ -9,10 +9,7 @@ import { ParticleSystem } from '../systems/ParticleSystem.js';
 import { sound } from '../systems/SoundSystem.js';
 import { haptic } from '../systems/HapticSystem.js';
 import { createRing } from '../entities/Ring.js';
-import { createRandomPowerup } from '../entities/Powerup.js';
-
-// Orb colors for powerup progress
-const ORB_COLORS = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dfe6e9', '#a29bfe', '#fd79a8'];
+import { Powerup } from '../entities/Powerup.js';
 
 // Main Game Class
 export class Game {
@@ -119,15 +116,16 @@ export class Game {
     }
 
     spawnPowerupFromProgress() {
-        // Called when orb progress is full
-        const powerup = createRandomPowerup(this.renderer.getScreenSize());
+        // Called when progress is full - spawn the previewed powerup type
+        const powerup = new Powerup(this.renderer.getScreenSize(), this.state.nextPowerupType);
         this.state.powerups.push(powerup);
         this.state.consumePowerupProgress();
 
         // Visual feedback
         sound.play('combo');
         haptic.medium();
-        this.ui.showComboPopup('⚡ POWERUP INCOMING!');
+        const powerupInfo = POWERUP_TYPES[powerup.type];
+        this.ui.showComboPopup(powerupInfo.icon + ' INCOMING!');
 
         // Burst particles at the icon location
         this.particles.burst(this.renderer.width - 60, 80, '#ffd700', 15, {
@@ -139,10 +137,9 @@ export class Game {
     }
 
     onRingPassed(isPerfect) {
-        // Add an orb toward powerup progress (only after score > 3 to let player get started)
+        // Add progress toward powerup (only after score > 3 to let player get started)
         if (this.state.score > 3) {
-            const orbColor = ORB_COLORS[this.state.powerupProgress % ORB_COLORS.length];
-            this.state.addPowerupOrb(orbColor);
+            this.state.addPowerupProgress();
 
             // Check if powerup should spawn
             if (this.state.isPowerupReady()) {
@@ -156,7 +153,20 @@ export class Game {
 
         sound.play('powerup');
         haptic.success();
-        this.ui.showComboPopup(powerupInfo.icon + ' ' + powerupInfo.name);
+        
+        // Exciting activation messages
+        const activationMessages = {
+            slowTime: ['⏱️ TIME SLOWED!', '⏱️ MATRIX MODE!', '⏱️ SLOW-MO!'],
+            shield: ['🛡️ PROTECTED!', '🛡️ SHIELD UP!', '🛡️ INVINCIBLE!'],
+            autoSize: ['🎯 AUTO-AIM!', '🎯 LOCK ON!', '🎯 PERFECT FIT!'],
+            doublePoints: ['⭐ 2X POINTS!', '⭐ DOUBLE UP!', '⭐ BONUS MODE!']
+        };
+        const messages = activationMessages[type] || [powerupInfo.icon + ' ' + powerupInfo.name];
+        const message = messages[Math.floor(Math.random() * messages.length)];
+        this.ui.showComboPopup(message);
+        
+        // Trigger a satisfaction pulse for the powerup
+        this.state.triggerPulse(2); // Type 2 = combo/powerup pulse (biggest)
 
         switch (type) {
             case 'slowTime':
@@ -179,12 +189,20 @@ export class Game {
 
         this.ui.updatePowerupIndicator(this.state.activePowerups, this.state.hasShield, POWERUP_TYPES);
 
-        // Collection particles
-        this.particles.burst(this.renderer.centerX, this.renderer.centerY, powerupInfo.color, 20, {
-            minSpeed: 2,
-            maxSpeed: 5,
+        // Big celebration particles
+        this.particles.burst(this.renderer.centerX, this.renderer.centerY, powerupInfo.color, 35, {
+            minSpeed: 3,
+            maxSpeed: 8,
             minSize: 4,
-            maxSize: 8,
+            maxSize: 10,
+        });
+        
+        // Extra white sparkle burst
+        this.particles.burst(this.renderer.centerX, this.renderer.centerY, '#ffffff', 15, {
+            minSpeed: 4,
+            maxSpeed: 10,
+            minSize: 2,
+            maxSize: 5,
         });
     }
 
@@ -235,8 +253,8 @@ export class Game {
         // Particles
         this.particles.update();
 
-        // Update powerup progress orbs
-        this.state.updatePowerupOrbs();
+        // Update powerup progress animation
+        this.state.updatePowerupProgress();
 
         // Update satisfaction pulse
         this.state.updatePulse();
@@ -420,7 +438,7 @@ export class Game {
         // Particles
         this.particles.draw(this.renderer.ctx);
 
-        // Player
+        // Player with integrated powerup progress ring
         this.renderer.drawPlayer(
             this.state.playerSize,
             colors,
@@ -432,25 +450,23 @@ export class Game {
             this.state.getPulseScale()
         );
 
+        // Powerup progress ring around player
+        this.renderer.drawPowerupProgressRing(
+            this.state.playerSize,
+            this.state.getPowerupProgressPercent(),
+            this.state.nextPowerupType,
+            this.state.powerupIconAngle,
+            this.state.isPowerupReady()
+        );
+
         // Slow time effect
         this.renderer.drawSlowTimeEffect(this.state.slowTimeActive);
-
-        // Powerup progress orbs
-        this.renderer.drawPowerupProgress(this.state.powerupOrbs, this.state.powerupProgress, GAME_CONFIG.RINGS_FOR_POWERUP);
     }
 
     gameLoop(timestamp) {
         try {
             const deltaTime = Math.min(timestamp - this.lastTime, 100); // Cap delta to prevent spiral
             this.lastTime = timestamp;
-
-            // Debug: log every 2 seconds
-            if (!this.lastDebugLog || timestamp - this.lastDebugLog > 2000) {
-                console.log(
-                    `[DEBUG] Score: ${this.state.score}, Rings: ${this.state.rings.length}, Particles: ${this.particles.particles.length}, Playing: ${this.state.isPlaying}`
-                );
-                this.lastDebugLog = timestamp;
-            }
 
             this.update(deltaTime);
             this.draw();

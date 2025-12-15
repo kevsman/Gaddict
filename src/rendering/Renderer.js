@@ -415,150 +415,89 @@ export class Renderer {
         }
     }
 
-    drawPowerupProgress(orbs, progress, maxProgress) {
-        if (progress === 0 && orbs.length === 0) return;
+    // New integrated powerup progress ring around the player
+    drawPowerupProgressRing(playerSize, progressPercent, nextPowerupType, iconAngle, isReady) {
+        if (progressPercent <= 0) return;
 
         const ctx = this.ctx;
-        const iconX = this.width - 60;
-        const iconY = 80;
         const time = Date.now() * 0.003;
-        const isReady = progress >= maxProgress;
-        const isClose = progress >= maxProgress - 2;
+        const powerupInfo = POWERUP_TYPES[nextPowerupType];
+        const powerupColor = powerupInfo ? powerupInfo.color : '#ffd700';
+        const powerupIcon = powerupInfo ? powerupInfo.icon : '?';
 
-        // Draw target powerup icon (mystery box style)
-        const iconPulse = Math.sin(time) * (isReady ? 5 : 3);
-        const iconSize = 26 + iconPulse;
+        // Progress ring radius - further out, thinner, more subtle
+        const ringRadius = playerSize + 35;
+        const ringWidth = 3;
 
-        // Dramatic outer glow when close to ready
-        if (isClose) {
-            const glowIntensity = isReady ? 0.5 : 0.25;
-            const glowSize = isReady ? 50 : 35;
-
-            // Multiple glow layers
-            for (let i = 3; i >= 0; i--) {
-                ctx.beginPath();
-                ctx.arc(iconX, iconY, iconSize + glowSize - i * 10, 0, Math.PI * 2);
-                const alpha = (glowIntensity - i * 0.1) * (0.7 + Math.sin(time * 3) * 0.3);
-                ctx.fillStyle = isReady ? `rgba(255, 215, 0, ${alpha})` : `rgba(255, 200, 100, ${alpha * 0.7})`;
-                ctx.fill();
-            }
-
-            // Spinning rays when ready
-            if (isReady) {
-                ctx.save();
-                ctx.translate(iconX, iconY);
-                ctx.rotate(time * 2);
-                for (let i = 0; i < 8; i++) {
-                    ctx.rotate(Math.PI / 4);
-                    ctx.beginPath();
-                    ctx.moveTo(0, iconSize + 5);
-                    ctx.lineTo(0, iconSize + 25 + Math.sin(time * 5 + i) * 5);
-                    ctx.strokeStyle = `rgba(255, 215, 0, ${0.6 + Math.sin(time * 3 + i) * 0.3})`;
-                    ctx.lineWidth = 3;
-                    ctx.stroke();
-                }
-                ctx.restore();
-            }
-        }
-
-        // Icon background circle with gradient
+        // Very subtle background ring (unfilled portion)
         ctx.beginPath();
-        ctx.arc(iconX, iconY, iconSize, 0, Math.PI * 2);
-        const iconGradient = ctx.createRadialGradient(iconX - 5, iconY - 5, 0, iconX, iconY, iconSize);
-        iconGradient.addColorStop(0, isReady ? '#6a5a2a' : '#5a5a7a');
-        iconGradient.addColorStop(0.5, isReady ? '#4a4a1a' : '#4a4a6a');
-        iconGradient.addColorStop(1, isReady ? '#2a2a0a' : '#2a2a3a');
-        ctx.fillStyle = iconGradient;
-        ctx.fill();
-
-        // Icon border
-        ctx.strokeStyle = progress >= maxProgress ? '#ffd700' : 'rgba(255, 255, 255, 0.4)';
-        ctx.lineWidth = 2;
+        ctx.arc(this.centerX, this.centerY, ringRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.lineWidth = ringWidth;
         ctx.stroke();
 
-        // Question mark or star icon
-        ctx.font = 'bold 20px Arial';
-        ctx.fillStyle = progress >= maxProgress ? '#ffd700' : 'rgba(255, 255, 255, 0.8)';
+        // Progress arc - fills clockwise from top
+        const startAngle = -Math.PI / 2; // Start at top
+        const endAngle = startAngle + progressPercent * Math.PI * 2;
+
+        // Subtle glow effect for the progress (only when getting close)
+        if (progressPercent > 0.5) {
+            ctx.beginPath();
+            ctx.arc(this.centerX, this.centerY, ringRadius, startAngle, endAngle);
+            ctx.strokeStyle = powerupColor;
+            ctx.lineWidth = ringWidth + 3;
+            ctx.globalAlpha = 0.15;
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
+
+        // Main progress arc - subtle opacity
+        ctx.beginPath();
+        ctx.arc(this.centerX, this.centerY, ringRadius, startAngle, endAngle);
+        ctx.strokeStyle = powerupColor;
+        ctx.lineWidth = ringWidth;
+        ctx.globalAlpha = isReady ? 0.9 : 0.5;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+        ctx.lineCap = 'butt';
+        ctx.globalAlpha = 1;
+
+        // Only show icon when progress > 50% or ready
+        if (progressPercent < 0.5 && !isReady) return;
+
+        // Small icon at the end of the progress arc (not orbiting)
+        const iconX = this.centerX + Math.cos(endAngle) * ringRadius;
+        const iconY = this.centerY + Math.sin(endAngle) * ringRadius;
+        const iconSize = isReady ? 14 + Math.sin(time * 4) * 2 : 10;
+
+        // Icon glow only when ready
+        if (isReady) {
+            ctx.beginPath();
+            ctx.arc(iconX, iconY, iconSize + 8, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 215, 0, ${0.3 + Math.sin(time * 3) * 0.1})`;
+            ctx.fill();
+        }
+
+        // Icon background circle
+        ctx.beginPath();
+        ctx.arc(iconX, iconY, iconSize, 0, Math.PI * 2);
+        ctx.fillStyle = isReady ? powerupColor : this.darkenColor(powerupColor, 20);
+        ctx.globalAlpha = isReady ? 1 : 0.7;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+
+        // Icon border
+        ctx.beginPath();
+        ctx.arc(iconX, iconY, iconSize, 0, Math.PI * 2);
+        ctx.strokeStyle = isReady ? '#fff' : 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Icon emoji (smaller)
+        ctx.font = `${isReady ? 12 : 10}px Arial`;
+        ctx.fillStyle = '#fff';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(progress >= maxProgress ? '★' : '?', iconX, iconY);
-
-        // Draw orbiting orbs with trails
-        for (let i = 0; i < orbs.length; i++) {
-            const orb = orbs[i];
-
-            // Calculate position - spiral toward icon
-            const x = iconX + Math.cos(orb.angle) * orb.radius;
-            const y = iconY + Math.sin(orb.angle) * orb.radius;
-
-            // Motion trail
-            for (let t = 1; t <= 4; t++) {
-                const trailAngle = orb.angle - t * 0.15;
-                const trailX = iconX + Math.cos(trailAngle) * (orb.radius + t * 2);
-                const trailY = iconY + Math.sin(trailAngle) * (orb.radius + t * 2);
-
-                ctx.beginPath();
-                ctx.arc(trailX, trailY, orb.displaySize * (1 - t * 0.2), 0, Math.PI * 2);
-                ctx.fillStyle = orb.color;
-                ctx.globalAlpha = 0.15 - t * 0.03;
-                ctx.fill();
-            }
-            ctx.globalAlpha = 1;
-
-            // Orb glow
-            ctx.beginPath();
-            ctx.arc(x, y, orb.displaySize + 6, 0, Math.PI * 2);
-            ctx.fillStyle = orb.color;
-            ctx.shadowColor = orb.color;
-            ctx.shadowBlur = 15;
-            ctx.globalAlpha = 0.4;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            ctx.globalAlpha = 1;
-
-            // Main orb with shine
-            ctx.beginPath();
-            ctx.arc(x, y, orb.displaySize, 0, Math.PI * 2);
-            const orbGradient = ctx.createRadialGradient(x - 2, y - 2, 0, x, y, orb.displaySize * 1.5);
-            orbGradient.addColorStop(0, '#ffffff');
-            orbGradient.addColorStop(0.2, '#ffffff');
-            orbGradient.addColorStop(0.4, orb.color);
-            orbGradient.addColorStop(1, this.darkenColor(orb.color, 40));
-            ctx.fillStyle = orbGradient;
-            ctx.globalAlpha = orb.alpha;
-            ctx.fill();
-            ctx.globalAlpha = 1;
-        }
-
-        // Draw progress indicator dots (empty slots) with glow
-        const dotRadius = 5;
-        const dotSpacing = 15;
-        const startX = iconX - ((maxProgress - 1) * dotSpacing) / 2;
-
-        for (let i = 0; i < maxProgress; i++) {
-            const dotX = startX + i * dotSpacing;
-            const dotY = iconY + iconSize + 22;
-
-            ctx.beginPath();
-            ctx.arc(dotX, dotY, dotRadius, 0, Math.PI * 2);
-
-            if (i < progress) {
-                // Filled dot with glow
-                const dotGradient = ctx.createRadialGradient(dotX, dotY, 0, dotX, dotY, dotRadius);
-                dotGradient.addColorStop(0, '#ffffff');
-                dotGradient.addColorStop(0.5, '#00ffaa');
-                dotGradient.addColorStop(1, '#00cc88');
-                ctx.fillStyle = dotGradient;
-                ctx.shadowColor = '#00ffaa';
-                ctx.shadowBlur = 8;
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            } else {
-                // Empty dot with subtle style
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            }
-        }
+        ctx.fillText(powerupIcon, iconX, iconY + 1);
     }
 }
