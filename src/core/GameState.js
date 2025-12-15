@@ -55,8 +55,8 @@ export class GameState {
         this.satisfactionPulseType = 0; // 0 = normal, 1 = perfect, 2 = combo
 
         // Clearance reward (brief slowdown + pushback)
-        this.clearanceSlowdown = 0;    // Time remaining for slowdown effect
-        this.clearancePushback = 0;    // Amount to push rings back
+        this.clearanceSlowdown = 0; // Time remaining for slowdown effect
+        this.clearancePushback = 0; // Amount to push rings back
 
         // Powerup progress orbs
         this.powerupProgress = 0; // Rings passed toward next powerup
