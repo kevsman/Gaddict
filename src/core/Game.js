@@ -80,7 +80,6 @@ export class Game {
 
     gameOver() {
         this.state.isPlaying = false;
-        this.state.screenShake = 20;
 
         sound.play('death');
         haptic.death();
@@ -219,12 +218,6 @@ export class Game {
     update(deltaTime) {
         const colors = this.getColors();
 
-        // Screen shake decay
-        if (this.state.screenShake > 0) {
-            this.state.screenShake *= 0.9;
-            if (this.state.screenShake < 0.1) this.state.screenShake = 0;
-        }
-
         // Visual effects
         this.state.pulseEffect += 0.05;
         this.state.backgroundPulse = Math.sin(this.state.pulseEffect) * 0.5 + 0.5;
@@ -249,15 +242,11 @@ export class Game {
 
         this.updatePowerups();
 
-        // Update clearance reward
-        this.state.updateClearanceReward();
-
-        // Calculate effective speed with all modifiers
+        // Calculate effective speed
         let effectiveSpeed = this.state.ringSpeed;
         if (this.state.slowTimeActive) effectiveSpeed *= 0.4;
-        effectiveSpeed *= this.state.getClearanceSpeedMultiplier(); // Clearance slowdown
 
-        // Apply pushback to rings if any
+        // Apply subtle pushback to rings if any
         const pushback = this.state.applyClearancePushback();
         if (pushback > 0) {
             for (const ring of this.state.rings) {
@@ -265,7 +254,6 @@ export class Game {
                     ring.radius += pushback;
                 }
             }
-            // Also push back powerups
             for (const powerup of this.state.powerups) {
                 if (!powerup.collected) {
                     powerup.radius += pushback;
@@ -396,7 +384,7 @@ export class Game {
     draw() {
         const colors = this.getColors();
 
-        this.renderer.clear(colors.background, this.state.screenShake);
+        this.renderer.clear(colors.background, 0);
         this.renderer.drawBackgroundGrid(this.state.backgroundPulse, colors.accent);
 
         // Powerups

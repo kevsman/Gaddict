@@ -181,34 +181,16 @@ export class GameState {
         return 1 + eased * intensity;
     }
 
-    // Clearance reward system - brief slowdown and ring pushback
+    // Clearance reward system - subtle ring pushback only
     triggerClearanceReward(isPerfect) {
-        // Slowdown duration (in frames, roughly)
-        this.clearanceSlowdown = isPerfect ? 12 : 8;
-        // Push rings back a bit (more for perfect)
-        this.clearancePushback = isPerfect ? 25 : 15;
-    }
-
-    updateClearanceReward() {
-        if (this.clearanceSlowdown > 0) {
-            this.clearanceSlowdown--;
-        }
+        // Small pushback - gives a tiny bit of breathing room
+        this.clearancePushback = isPerfect ? 10 : 6;
     }
 
     applyClearancePushback() {
         const pushback = this.clearancePushback;
         this.clearancePushback = 0;
         return pushback;
-    }
-
-    getClearanceSpeedMultiplier() {
-        // During clearance slowdown, reduce speed significantly
-        if (this.clearanceSlowdown > 0) {
-            // Smooth slowdown that eases out
-            const factor = this.clearanceSlowdown / 12;
-            return 0.3 + (1 - factor) * 0.7; // Starts at 0.3x speed, smoothly returns to 1x
-        }
-        return 1;
     }
 
     // Powerup progress orb system
