@@ -18,16 +18,14 @@ export class Ring {
 
     update(speed) {
         this.radius -= speed;
-        
+
         if (this.movingGap) {
             this.gapAngle += this.gapSpeed;
         }
     }
 
     isAtPlayer(playerSize) {
-        return !this.passed && 
-               this.radius <= playerSize + GAME_CONFIG.RING_THICKNESS && 
-               this.radius >= playerSize - GAME_CONFIG.RING_THICKNESS * 2;
+        return !this.passed && this.radius <= playerSize + GAME_CONFIG.RING_THICKNESS && this.radius >= playerSize - GAME_CONFIG.RING_THICKNESS * 2;
     }
 
     playerFitsGap(playerSize) {

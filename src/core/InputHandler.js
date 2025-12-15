@@ -6,7 +6,7 @@ export class InputHandler {
         this.onHoldEnd = onHoldEnd;
         this.onThemeKey = onThemeKey;
         this.isHolding = false;
-        
+
         this.setupEventListeners();
     }
 
@@ -27,15 +27,23 @@ export class InputHandler {
         });
 
         // Touch events
-        this.canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            this.startHold();
-        }, { passive: false });
+        this.canvas.addEventListener(
+            'touchstart',
+            (e) => {
+                e.preventDefault();
+                this.startHold();
+            },
+            { passive: false }
+        );
 
-        this.canvas.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            this.endHold();
-        }, { passive: false });
+        this.canvas.addEventListener(
+            'touchend',
+            (e) => {
+                e.preventDefault();
+                this.endHold();
+            },
+            { passive: false }
+        );
 
         this.canvas.addEventListener('touchcancel', () => {
             this.endHold();

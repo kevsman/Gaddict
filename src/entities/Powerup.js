@@ -5,10 +5,9 @@ import { POWERUP_TYPES } from '../config/powerups.js';
 export class Powerup {
     constructor(screenSize, type) {
         const powerupInfo = POWERUP_TYPES[type];
-        
+
         this.radius = screenSize * 0.7;
-        this.size = GAME_CONFIG.MIN_PLAYER_SIZE + 
-                    Math.random() * (GAME_CONFIG.MAX_PLAYER_SIZE - GAME_CONFIG.MIN_PLAYER_SIZE);
+        this.size = GAME_CONFIG.MIN_PLAYER_SIZE + Math.random() * (GAME_CONFIG.MAX_PLAYER_SIZE - GAME_CONFIG.MIN_PLAYER_SIZE);
         this.type = type;
         this.color = powerupInfo.color;
         this.collected = false;
@@ -22,10 +21,10 @@ export class Powerup {
 
     checkCollection(playerSize) {
         if (this.collected) return false;
-        
+
         const diff = Math.abs(this.radius - playerSize);
         const sizeDiff = Math.abs(playerSize - this.size);
-        
+
         if (diff < 20 && sizeDiff < 15) {
             this.collected = true;
             return true;

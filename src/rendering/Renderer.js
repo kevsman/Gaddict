@@ -10,7 +10,7 @@ export class Renderer {
         this.height = 0;
         this.centerX = 0;
         this.centerY = 0;
-        
+
         this.resize();
         window.addEventListener('resize', () => this.resize());
     }
@@ -30,7 +30,7 @@ export class Renderer {
 
     clear(backgroundColor, screenShake = 0) {
         this.ctx.save();
-        
+
         if (screenShake > 0) {
             const shakeX = (Math.random() - 0.5) * screenShake;
             const shakeY = (Math.random() - 0.5) * screenShake;
@@ -48,7 +48,7 @@ export class Renderer {
     drawBackgroundGrid(pulse) {
         this.ctx.strokeStyle = `rgba(255, 255, 255, ${0.02 + pulse * 0.02})`;
         this.ctx.lineWidth = 1;
-        
+
         for (let r = 50; r < this.getScreenSize(); r += 100) {
             this.ctx.beginPath();
             this.ctx.arc(this.centerX, this.centerY, r, 0, Math.PI * 2);
@@ -144,10 +144,7 @@ export class Renderer {
 
         // Shield glow
         if (hasShield) {
-            const shieldGlow = ctx.createRadialGradient(
-                this.centerX, this.centerY, playerSize,
-                this.centerX, this.centerY, playerSize + 30
-            );
+            const shieldGlow = ctx.createRadialGradient(this.centerX, this.centerY, playerSize, this.centerX, this.centerY, playerSize + 30);
             shieldGlow.addColorStop(0, 'rgba(255, 215, 0, 0.4)');
             shieldGlow.addColorStop(1, 'transparent');
             ctx.fillStyle = shieldGlow;
@@ -180,10 +177,7 @@ export class Renderer {
 
         // Glow effect
         const glowSize = playerSize + 20;
-        const gradient = ctx.createRadialGradient(
-            this.centerX, this.centerY, playerSize * 0.5,
-            this.centerX, this.centerY, glowSize
-        );
+        const gradient = ctx.createRadialGradient(this.centerX, this.centerY, playerSize * 0.5, this.centerX, this.centerY, glowSize);
         gradient.addColorStop(0, colors.playerGlow);
         gradient.addColorStop(1, 'transparent');
         ctx.fillStyle = gradient;
@@ -202,7 +196,9 @@ export class Renderer {
             this.centerX - playerSize * 0.3,
             this.centerY - playerSize * 0.3,
             0,
-            this.centerX, this.centerY, playerSize
+            this.centerX,
+            this.centerY,
+            playerSize
         );
         innerGradient.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
         innerGradient.addColorStop(1, 'transparent');

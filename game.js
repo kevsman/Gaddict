@@ -987,30 +987,30 @@ function draw() {
     }
 
     // Find the nearest upcoming ring for gap indicator
-    const nearestRing = gameState.rings.find(r => !r.passed && r.radius > gameState.playerSize);
-    
+    const nearestRing = gameState.rings.find((r) => !r.passed && r.radius > gameState.playerSize);
+
     // Draw the target zone (gap indicator) for ONLY the nearest ring
     if (nearestRing && gameState.isPlaying) {
         const ring = nearestRing;
-        
+
         // Draw filled zone between inner and outer radius (the safe zone)
         ctx.beginPath();
         ctx.arc(centerX, centerY, ring.outerRadius, 0, Math.PI * 2);
         ctx.arc(centerX, centerY, ring.innerRadius, 0, Math.PI * 2, true);
         ctx.fillStyle = `rgba(0, 255, 170, 0.15)`;
         ctx.fill();
-        
+
         // Draw solid lines for the boundaries
         ctx.beginPath();
         ctx.arc(centerX, centerY, ring.innerRadius, 0, Math.PI * 2);
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
         ctx.lineWidth = 2;
         ctx.stroke();
-        
+
         ctx.beginPath();
         ctx.arc(centerX, centerY, ring.outerRadius, 0, Math.PI * 2);
         ctx.stroke();
-        
+
         // Draw target line (perfect size) in the middle
         const perfectSize = ring.requiredSize;
         ctx.beginPath();

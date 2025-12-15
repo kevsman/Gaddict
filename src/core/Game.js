@@ -18,7 +18,7 @@ export class Game {
         this.ui = new UIManager();
         this.renderer = new Renderer(canvas);
         this.particles = new ParticleSystem();
-        
+
         this.input = new InputHandler(
             canvas,
             () => this.onHoldStart(),
@@ -33,7 +33,7 @@ export class Game {
     init() {
         this.ui.updateHighScore(this.state.highScore);
         document.body.style.background = this.getColors().background;
-        
+
         requestAnimationFrame((t) => this.gameLoop(t));
     }
 
@@ -86,13 +86,12 @@ export class Game {
         this.ui.updateHighScore(this.state.highScore);
 
         // Explosion particles
-        this.particles.burst(
-            this.renderer.centerX,
-            this.renderer.centerY,
-            this.getColors().ringFail,
-            40,
-            { minSpeed: 3, maxSpeed: 9, minSize: 3, maxSize: 9 }
-        );
+        this.particles.burst(this.renderer.centerX, this.renderer.centerY, this.getColors().ringFail, 40, {
+            minSpeed: 3,
+            maxSpeed: 9,
+            minSize: 3,
+            maxSize: 9,
+        });
 
         setTimeout(() => {
             if (!this.state.isPlaying) {
@@ -103,12 +102,7 @@ export class Game {
 
     spawnRing() {
         const colors = this.getColors();
-        const ring = createRing(
-            this.renderer.getScreenSize(),
-            this.state.difficulty,
-            this.state.patternMode,
-            colors.ring
-        );
+        const ring = createRing(this.renderer.getScreenSize(), this.state.difficulty, this.state.patternMode, colors.ring);
         this.state.rings.push(ring);
 
         // Maybe spawn powerup
@@ -147,13 +141,12 @@ export class Game {
         this.ui.updatePowerupIndicator(this.state.activePowerups, this.state.hasShield, POWERUP_TYPES);
 
         // Collection particles
-        this.particles.burst(
-            this.renderer.centerX,
-            this.renderer.centerY,
-            powerupInfo.color,
-            20,
-            { minSpeed: 2, maxSpeed: 5, minSize: 4, maxSize: 8 }
-        );
+        this.particles.burst(this.renderer.centerX, this.renderer.centerY, powerupInfo.color, 20, {
+            minSpeed: 2,
+            maxSpeed: 5,
+            minSize: 4,
+            maxSize: 8,
+        });
     }
 
     updatePowerups() {
@@ -224,7 +217,7 @@ export class Game {
 
         // Player size control
         if (this.state.autoSizeActive && this.state.rings.length > 0) {
-            const nearestRing = this.state.rings.find(r => !r.passed && r.radius > 0);
+            const nearestRing = this.state.rings.find((r) => !r.passed && r.radius > 0);
             if (nearestRing && nearestRing.radius < 300) {
                 this.state.targetSize = nearestRing.requiredSize;
             }
@@ -254,7 +247,7 @@ export class Game {
                 this.activatePowerup(powerup.type);
             }
         }
-        this.state.powerups = this.state.powerups.filter(p => !p.shouldRemove());
+        this.state.powerups = this.state.powerups.filter((p) => !p.shouldRemove());
 
         // Update rings
         for (const ring of this.state.rings) {
@@ -327,7 +320,7 @@ export class Game {
             }
         }
 
-        this.state.rings = this.state.rings.filter(r => !r.shouldRemove());
+        this.state.rings = this.state.rings.filter((r) => !r.shouldRemove());
     }
 
     draw() {
@@ -342,7 +335,7 @@ export class Game {
         }
 
         // Target zone for nearest ring
-        const nearestRing = this.state.rings.find(r => !r.passed && r.radius > this.state.playerSize);
+        const nearestRing = this.state.rings.find((r) => !r.passed && r.radius > this.state.playerSize);
         this.renderer.drawTargetZone(nearestRing, this.state.isPlaying);
 
         // Rings

@@ -13,19 +13,12 @@ export class ParticleSystem {
      * @param {object} options - Additional options
      */
     burst(x, y, color, count = 20, options = {}) {
-        const {
-            minSpeed = 2,
-            maxSpeed = 5,
-            minSize = 2,
-            maxSize = 6,
-            spread = Math.PI * 2,
-            startAngle = 0,
-        } = options;
+        const { minSpeed = 2, maxSpeed = 5, minSize = 2, maxSize = 6, spread = Math.PI * 2, startAngle = 0 } = options;
 
         for (let i = 0; i < count; i++) {
             const angle = startAngle + (spread * i) / count;
             const speed = minSpeed + Math.random() * (maxSpeed - minSpeed);
-            
+
             this.particles.push({
                 x,
                 y,
@@ -50,7 +43,7 @@ export class ParticleSystem {
         for (let i = 0; i < count; i++) {
             const angle = Math.random() * Math.PI * 2;
             const speed = 2 + Math.random() * 4;
-            
+
             this.particles.push({
                 x: centerX + Math.cos(angle) * radius,
                 y: centerY + Math.sin(angle) * radius,
@@ -67,7 +60,7 @@ export class ParticleSystem {
      * Update all particles
      */
     update() {
-        this.particles = this.particles.filter(p => {
+        this.particles = this.particles.filter((p) => {
             p.x += p.vx;
             p.y += p.vy;
             p.vx *= 0.98;
