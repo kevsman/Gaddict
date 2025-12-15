@@ -99,6 +99,7 @@ export class Game {
         this.state.isPlaying = false;
         this.screenShake = 20; // Heavy shake
         this.state.triggerHitStop(); // Hit stop for impact
+        this.renderer.triggerChromaticAberration(1.0); // Full chromatic aberration on death
 
         sound.play('death');
         sound.stopMusic();
@@ -183,6 +184,9 @@ export class Game {
 
         sound.play('powerup');
         haptic.success();
+        
+        // Chromatic aberration on powerup activation
+        this.renderer.triggerChromaticAberration(0.6);
 
         // Exciting activation messages for each powerup
         const activationMessages = {
@@ -396,6 +400,16 @@ export class Game {
         }
         this.cameraZoom += (targetZoom - this.cameraZoom) * 0.05;
 
+        // Update dynamic color grading (tension/release visual)
+        const speedFactor = Math.max(0, (this.state.ringSpeed - GAME_CONFIG.BASE_RING_SPEED) / 3);
+        this.renderer.updateColorGrading(this.state.inRecoveryPhase, speedFactor);
+
+        // Update chromatic aberration decay
+        this.renderer.updateChromaticAberration();
+
+        // Update player trail for motion blur effect
+        this.renderer.updatePlayerTrail(this.state.playerSize, speedFactor);
+
         // Visual effects
         this.state.pulseEffect += 0.05;
         this.state.backgroundPulse = Math.sin(this.state.pulseEffect) * 0.5 + 0.5;
@@ -570,6 +584,11 @@ export class Game {
                         sound.play('combo');
                         haptic.medium();
                         this.state.triggerPulse(2);
+                        
+                        // Chromatic aberration at high combos (50+)
+                        if (this.state.combo >= 50) {
+                            this.renderer.triggerChromaticAberration(0.8);
+                        }
                     } else if (isPerfect) {
                         this.state.triggerPulse(1); // Perfect pulse (medium)
                         haptic.light();
@@ -687,6 +706,9 @@ export class Game {
         if (this.state.rainbowActive) {
             this.renderer.drawRainbowEffect();
         }
+
+        // Chromatic aberration post-process effect (on death, high combo, powerup)
+        this.renderer.drawChromaticAberration();
 
         this.renderer.endFrame();
     }

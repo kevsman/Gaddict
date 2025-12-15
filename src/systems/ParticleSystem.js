@@ -114,6 +114,9 @@ export class ParticleSystem {
      * @param {CanvasRenderingContext2D} ctx - Canvas context
      */
     draw(ctx) {
+        // Use additive blending for bloom/neon glow effect
+        ctx.globalCompositeOperation = 'lighter';
+        
         for (const p of this.particles) {
             ctx.save();
 
@@ -178,6 +181,9 @@ export class ParticleSystem {
 
             ctx.restore();
         }
+        
+        // Reset composite operation
+        ctx.globalCompositeOperation = 'source-over';
         ctx.globalAlpha = 1;
         ctx.shadowBlur = 0;
     }

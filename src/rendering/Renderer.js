@@ -11,6 +11,17 @@ export class Renderer {
         this.centerX = 0;
         this.centerY = 0;
 
+        // Chromatic aberration effect state
+        this.chromaticAberration = 0; // 0-1 intensity
+        this.chromaticAberrationDecay = 0.92;
+
+        // Player trail for motion blur effect
+        this.playerTrail = []; // Array of {size, alpha}
+        this.maxTrailLength = 8;
+
+        // Dynamic color grading state
+        this.colorGradingIntensity = 0; // 0 = cool (safe), 1 = hot (danger)
+
         this.resize();
         window.addEventListener('resize', () => this.resize());
     }
@@ -33,11 +44,14 @@ export class Renderer {
         // Reset transform to ensure we cover the whole screen with background
         this.ctx.setTransform(1, 0, 0, 1, 0, 0);
 
+        // Apply dynamic color grading to background
+        const gradedBackground = this.applyColorGrading(backgroundColor);
+
         // Draw background
         const gradient = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, this.height);
-        gradient.addColorStop(0, this.lightenColor(backgroundColor, 15));
-        gradient.addColorStop(0.5, backgroundColor);
-        gradient.addColorStop(1, this.darkenColor(backgroundColor, 10));
+        gradient.addColorStop(0, this.lightenColor(gradedBackground, 15));
+        gradient.addColorStop(0.5, gradedBackground);
+        gradient.addColorStop(1, this.darkenColor(gradedBackground, 10));
 
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.width, this.height);
@@ -115,6 +129,67 @@ export class Renderer {
     hexToRgb(hex) {
         const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
         return result ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : '255, 255, 255';
+    }
+
+    hexToRgbArray(hex) {
+        const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : [255, 255, 255];
+    }
+
+    // Dynamic Color Grading - shift towards hot/cool colors based on intensity
+    applyColorGrading(hexColor) {
+        if (this.colorGradingIntensity <= 0.01) return hexColor;
+        
+        const [r, g, b] = this.hexToRgbArray(hexColor);
+        const intensity = this.colorGradingIntensity;
+        
+        // Shift towards warmer (red/orange) when intensity is high
+        const newR = Math.min(255, r + intensity * 40);
+        const newG = Math.max(0, g - intensity * 20);
+        const newB = Math.max(0, b - intensity * 30);
+        
+        return `rgb(${Math.round(newR)}, ${Math.round(newG)}, ${Math.round(newB)})`;
+    }
+
+    // Update color grading based on game state (call from Game.js)
+    updateColorGrading(inRecoveryPhase, speedFactor) {
+        const targetIntensity = inRecoveryPhase ? 0 : Math.min(1, speedFactor * 0.3);
+        // Smooth transition using lerp
+        this.colorGradingIntensity += (targetIntensity - this.colorGradingIntensity) * 0.02;
+    }
+
+    // Trigger chromatic aberration effect
+    triggerChromaticAberration(intensity = 1) {
+        this.chromaticAberration = Math.min(1, intensity);
+    }
+
+    // Update chromatic aberration decay
+    updateChromaticAberration() {
+        this.chromaticAberration *= this.chromaticAberrationDecay;
+        if (this.chromaticAberration < 0.01) this.chromaticAberration = 0;
+    }
+
+    // Draw chromatic aberration post-process effect
+    drawChromaticAberration() {
+        if (this.chromaticAberration < 0.01) return;
+        
+        const ctx = this.ctx;
+        const offset = this.chromaticAberration * 8; // Max 8px offset
+        
+        // Save current canvas as image data for manipulation
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        ctx.globalAlpha = this.chromaticAberration * 0.4;
+        
+        // Red channel shift (left)
+        ctx.fillStyle = `rgba(255, 0, 0, ${this.chromaticAberration * 0.15})`;
+        ctx.fillRect(-offset, 0, this.width, this.height);
+        
+        // Blue channel shift (right)
+        ctx.fillStyle = `rgba(0, 0, 255, ${this.chromaticAberration * 0.15})`;
+        ctx.fillRect(offset, 0, this.width, this.height);
+        
+        ctx.restore();
     }
 
     drawTargetZone(ring, isPlaying) {
@@ -433,15 +508,23 @@ export class Renderer {
             ctx.shadowBlur = 0;
         }
 
-        // Soft glow around player - uses pulsed size
+        // Draw player trail (motion blur effect) - BEFORE the main player
+        this.drawPlayerTrail(ctx, playerColor);
+
+        // Soft glow around player - uses pulsed size with BLOOM effect
         const glowSize = pulsedSize + 25 + (pulseScale - 1) * 30; // Extra glow on pulse
+        
+        // Use additive blending for bloom/neon glow
+        ctx.globalCompositeOperation = 'lighter';
         const glowGradient = ctx.createRadialGradient(this.centerX, this.centerY, pulsedSize * 0.5, this.centerX, this.centerY, glowSize);
         glowGradient.addColorStop(0, colors.playerGlow);
+        glowGradient.addColorStop(0.5, colors.playerGlow.replace('0.4', '0.15'));
         glowGradient.addColorStop(1, 'transparent');
         ctx.beginPath();
         ctx.arc(this.centerX, this.centerY, glowSize, 0, Math.PI * 2);
         ctx.fillStyle = glowGradient;
         ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
 
         // Pulse flash effect - bright ring on pulse
         if (pulseScale > 1.01) {
@@ -656,5 +739,47 @@ export class Renderer {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(powerupIcon, iconX, iconY + 1);
+    }
+
+    // Update player trail for motion blur effect
+    updatePlayerTrail(playerSize, speed) {
+        // Calculate trail length based on speed (more speed = longer trail)
+        const trailLength = Math.min(this.maxTrailLength, Math.floor(speed * 1.5));
+        
+        // Add current position to trail
+        this.playerTrail.unshift({ size: playerSize, alpha: 0.6 });
+        
+        // Trim trail to appropriate length
+        while (this.playerTrail.length > trailLength) {
+            this.playerTrail.pop();
+        }
+        
+        // Fade out trail entries
+        for (let i = 0; i < this.playerTrail.length; i++) {
+            this.playerTrail[i].alpha *= 0.7;
+        }
+    }
+
+    // Draw player trail (motion blur)
+    drawPlayerTrail(ctx, playerColor) {
+        if (this.playerTrail.length === 0) return;
+        
+        // Use additive blending for glowing trail
+        ctx.globalCompositeOperation = 'lighter';
+        
+        for (let i = this.playerTrail.length - 1; i >= 0; i--) {
+            const trail = this.playerTrail[i];
+            const shrinkFactor = 1 - (i / this.playerTrail.length) * 0.3;
+            const trailSize = trail.size * shrinkFactor;
+            
+            ctx.beginPath();
+            ctx.arc(this.centerX, this.centerY, trailSize, 0, Math.PI * 2);
+            ctx.fillStyle = playerColor;
+            ctx.globalAlpha = trail.alpha * 0.3;
+            ctx.fill();
+        }
+        
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
     }
 }
