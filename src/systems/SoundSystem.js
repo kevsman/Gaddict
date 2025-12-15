@@ -153,6 +153,12 @@ export class SoundSystem {
             case 'shield':
                 this.playTone(300, 0.2, 'triangle', 0.3);
                 break;
+            case 'nearMiss':
+                // Harsh metallic scrape sound for near misses
+                this.playNoise(0.08, 0.25);
+                this.playTone(180, 0.15, 'sawtooth', 0.2);
+                this.playTone(220, 0.1, 'sawtooth', 0.15, 0.05);
+                break;
         }
     }
 

@@ -74,6 +74,15 @@ export class GameState {
         this.nextPowerupType = this.pickNextPowerup(); // What powerup is coming
         this.powerupIconAngle = 0; // Orbiting icon angle
         this.powerupReady = false; // Flashes when ready to collect
+
+        // Psychological Hooks
+        this.consecutivePerfects = 0; // For audio pitch ramping
+        this.nearMissCount = 0; // Track near misses for achievements
+        this.lastNearMiss = 0; // Timestamp of last near miss
+        this.waveStartTime = 0; // For sawtooth difficulty
+        this.inRecoveryPhase = false; // Are we in the "breathing room" phase?
+        this.lastHighScore = 0; // For endowed progress
+        this.hitStopUntil = 0; // Timestamp when hit stop ends
     }
 
     pickNextPowerup() {
@@ -135,7 +144,33 @@ export class GameState {
         const scoreForDifficulty = Math.max(0, this.score - 5); // First 5 rings are easy
 
         this.difficulty = 1 + scoreForDifficulty * 0.08; // Slower difficulty ramp (was 0.12)
-        this.ringSpeed = GAME_CONFIG.BASE_RING_SPEED + scoreForDifficulty * 0.04; // Slower speed increase (was 0.06)
+        let baseSpeed = GAME_CONFIG.BASE_RING_SPEED + scoreForDifficulty * 0.04; // Slower speed increase (was 0.06)
+        
+        // Sawtooth Difficulty Curve - Tension & Release
+        const now = Date.now();
+        const waveTime = now - this.waveStartTime;
+        
+        if (waveTime > GAME_CONFIG.DIFFICULTY_WAVE_DURATION) {
+            // Start recovery phase
+            if (!this.inRecoveryPhase) {
+                this.inRecoveryPhase = true;
+                this.recoveryStartTime = now;
+            }
+        }
+        
+        if (this.inRecoveryPhase) {
+            const recoveryTime = now - this.recoveryStartTime;
+            if (recoveryTime < GAME_CONFIG.DIFFICULTY_RECOVERY_DURATION) {
+                // During recovery: reduce speed
+                baseSpeed *= (1 - GAME_CONFIG.DIFFICULTY_RECOVERY_PERCENT);
+            } else {
+                // Recovery over, start new wave
+                this.inRecoveryPhase = false;
+                this.waveStartTime = now;
+            }
+        }
+        
+        this.ringSpeed = baseSpeed;
         this.ringSpawnInterval = Math.max(800, GAME_CONFIG.RING_SPAWN_INTERVAL_BASE - scoreForDifficulty * 20); // Slower spawn rate increase
 
         // Pattern mode changes - delayed and more gradual
@@ -170,13 +205,46 @@ export class GameState {
             this.maxCombo = this.combo;
         }
         this.perfectStreak++;
+        this.consecutivePerfects++;
         this.updateMultiplier();
     }
 
     resetCombo() {
         this.combo = 0;
         this.perfectStreak = 0;
+        this.consecutivePerfects = 0; // Reset pitch ramping
         this.multiplier = this.doublePointsActive ? 2 : 1;
+    }
+
+    // Get pitch scale for audio based on consecutive perfects
+    getPitchScale() {
+        const semitones = Math.min(this.consecutivePerfects, 12); // Cap at 12 semitones (one octave)
+        return Math.min(
+            Math.pow(GAME_CONFIG.PITCH_RAMP_SEMITONE, semitones),
+            GAME_CONFIG.MAX_PITCH_MULTIPLIER
+        );
+    }
+
+    // Track near miss
+    recordNearMiss() {
+        this.nearMissCount++;
+        this.lastNearMiss = Date.now();
+    }
+
+    // Hit stop - freeze game briefly
+    triggerHitStop() {
+        this.hitStopUntil = Date.now() + GAME_CONFIG.HIT_STOP_DURATION;
+    }
+
+    isInHitStop() {
+        return Date.now() < this.hitStopUntil;
+    }
+
+    // Endowed progress - carry over some progress after a good run
+    applyEndowedProgress(previousScore) {
+        if (previousScore >= 20) { // Only if they had a decent run
+            this.powerupProgress = Math.floor(GAME_CONFIG.RINGS_FOR_POWERUP * GAME_CONFIG.ENDOWED_PROGRESS_PERCENT);
+        }
     }
 
     // Satisfaction pulse system

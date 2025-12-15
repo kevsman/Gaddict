@@ -10,6 +10,7 @@ export class UIManager {
             finalScore: document.getElementById('finalScore'),
             bestScore: document.getElementById('bestScore'),
             newHighScore: document.getElementById('newHighScore'),
+            nextUnlockHint: document.getElementById('nextUnlockHint'),
             powerupIndicator: document.getElementById('powerupIndicator'),
             themeUnlock: document.getElementById('themeUnlock'),
             unlockedThemeName: document.getElementById('unlockedThemeName'),
@@ -59,11 +60,19 @@ export class UIManager {
         this.elements.message.style.display = show ? 'block' : 'none';
     }
 
-    showGameOver(score, highScore, isNewHighScore) {
+    showGameOver(score, highScore, isNewHighScore, nextUnlock = null) {
         this.elements.finalScore.textContent = score;
         this.elements.bestScore.textContent = highScore;
         this.elements.gameOver.style.display = 'block';
         this.elements.newHighScore.style.display = isNewHighScore ? 'block' : 'none';
+        
+        // Zeigarnik Effect - show how close they are to next unlock
+        if (nextUnlock && this.elements.nextUnlockHint) {
+            this.elements.nextUnlockHint.textContent = `🎯 ${nextUnlock.pointsAway} points away from ${nextUnlock.name} theme!`;
+            this.elements.nextUnlockHint.style.display = 'block';
+        } else if (this.elements.nextUnlockHint) {
+            this.elements.nextUnlockHint.style.display = 'none';
+        }
     }
 
     hideGameOver() {

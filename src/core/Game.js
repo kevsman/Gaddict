@@ -75,11 +75,16 @@ export class Game {
     }
 
     startGame() {
+        const previousScore = this.state.score; // Save for endowed progress
         this.state.reset();
         this.state.loadSavedData();
         this.state.isPlaying = true;
         this.state.lastRingSpawn = Date.now() - this.state.ringSpawnInterval;
+        this.state.waveStartTime = Date.now(); // Initialize sawtooth difficulty
         this.particles.clear();
+
+        // Endowed Progress - start with some powerup progress if previous run was good
+        this.state.applyEndowedProgress(previousScore);
 
         this.ui.showMessage(false);
         this.ui.hideGameOver();
@@ -93,6 +98,7 @@ export class Game {
     gameOver() {
         this.state.isPlaying = false;
         this.screenShake = 20; // Heavy shake
+        this.state.triggerHitStop(); // Hit stop for impact
 
         sound.play('death');
         sound.stopMusic();
@@ -109,18 +115,34 @@ export class Game {
             maxSize: 9,
         });
 
+        // Calculate distance to next unlock for Zeigarnik Effect
+        const nextUnlock = this.getNextThemeUnlock();
+
         setTimeout(() => {
             if (!this.state.isPlaying) {
-                this.ui.showGameOver(this.state.score, this.state.highScore, isNewHighScore);
+                this.ui.showGameOver(this.state.score, this.state.highScore, isNewHighScore, nextUnlock);
             }
         }, 500);
+    }
+
+    // Zeigarnik Effect - find the next theme unlock
+    getNextThemeUnlock() {
+        for (const [themeId, theme] of Object.entries(THEMES)) {
+            if (!this.state.unlockedThemes.includes(themeId) && theme.unlockScore > this.state.score) {
+                return {
+                    name: theme.name,
+                    score: theme.unlockScore,
+                    pointsAway: theme.unlockScore - this.state.score
+                };
+            }
+        }
+        return null;
     }
 
     spawnRing() {
         const colors = this.getColors();
         const ring = createRing(this.renderer.getScreenSize(), this.state.difficulty, this.state.patternMode, colors.ring);
         this.state.rings.push(ring);
-        console.log('[DEBUG] Ring spawned, radius:', ring.radius, 'total rings:', this.state.rings.length);
     }
 
     spawnPowerupFromProgress() {
@@ -396,6 +418,9 @@ export class Game {
 
         if (!this.state.isPlaying) return;
 
+        // Hit Stop - freeze game briefly for impact
+        if (this.state.isInHitStop()) return;
+
         this.updatePowerups();
         sound.updateMusic(this.state.combo);
 
@@ -471,6 +496,19 @@ export class Game {
                 // Magnetize: rings adjust their gap to fit player
                 // God mode: auto-fit the ring
                 let fitsGap = this.godMode || this.state.ghostActive || ring.playerFitsGap(this.state.playerSize);
+                let isNearMiss = false;
+
+                // Phantom Hitbox - check if player would survive with forgiveness
+                if (!fitsGap && !this.state.ghostActive) {
+                    const fitsWithForgiveness = ring.playerFitsGapWithForgiveness(
+                        this.state.playerSize, 
+                        GAME_CONFIG.PHANTOM_HITBOX_FORGIVENESS
+                    );
+                    if (fitsWithForgiveness) {
+                        fitsGap = true;
+                        isNearMiss = true;
+                    }
+                }
 
                 // Magnetize makes rings easier - widen the gap temporarily
                 if (this.state.magnetizeActive && !fitsGap) {
@@ -481,17 +519,35 @@ export class Game {
                 }
 
                 if (fitsGap) {
+                    // Near Miss feedback - "LUCKY!" moment
+                    if (isNearMiss) {
+                        this.state.recordNearMiss();
+                        sound.play('nearMiss');
+                        this.ui.showComboPopup('😱 CLOSE CALL!');
+                        this.screenShake = 5; // Small shake for tension
+                        // Sparks effect for the scrape
+                        this.particles.burst(
+                            this.renderer.centerX + (Math.random() - 0.5) * this.state.playerSize,
+                            this.renderer.centerY + (Math.random() - 0.5) * this.state.playerSize,
+                            '#ffa500', 8, { minSpeed: 2, maxSpeed: 5, minSize: 2, maxSize: 4 }
+                        );
+                    }
+
                     // Success
                     let isPerfect = this.godMode ? Math.random() > 0.5 : ring.isPerfectPass(this.state.playerSize);
 
                     // Perfect streak powerup - all passes are perfect!
                     if (this.state.perfectStreakActive) isPerfect = true;
 
+                    // Near misses can't be perfect
+                    if (isNearMiss) isPerfect = false;
+
                     ring.markPassed(colors.ringPassed);
 
                     if (isPerfect) {
                         this.state.incrementCombo();
-                        sound.play('perfect');
+                        // Audio Pitch Ramping - play sound with pitch based on streak
+                        sound.play('perfect', this.state.getPitchScale());
                     } else {
                         // Combo keeper prevents combo reset on non-perfect
                         if (!this.state.comboKeeperActive) {

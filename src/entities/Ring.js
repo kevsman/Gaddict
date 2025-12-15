@@ -33,6 +33,19 @@ export class Ring {
         return playerSize >= this.innerRadius && playerSize <= this.outerRadius;
     }
 
+    // Phantom hitbox - uses forgiveness buffer for near misses
+    playerFitsGapWithForgiveness(playerSize, forgiveness) {
+        const forgivenSize = playerSize * (1 - forgiveness);
+        return forgivenSize >= this.innerRadius && forgivenSize <= this.outerRadius;
+    }
+
+    // Check if player is in the "near miss" zone (would die without forgiveness)
+    isNearMiss(playerSize, forgiveness) {
+        const visualFits = this.playerFitsGap(playerSize);
+        const forgivenFits = this.playerFitsGapWithForgiveness(playerSize, forgiveness);
+        return !visualFits && forgivenFits;
+    }
+
     isPerfectPass(playerSize) {
         const perfectThreshold = this.gap * 0.25;
         const distFromCenter = Math.abs(playerSize - this.requiredSize);

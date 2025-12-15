@@ -84,3 +84,33 @@ _Different ways to play._
 14. **Hardcore Mode**
     -   **Rules:** 1 HP (no shields allowed). Speed starts at max.
     -   **Goal:** For the true experts.
+
+## 🧠 Psychological Hooks (Addiction & Flow)
+
+_Deep game design psychology to increase retention._
+
+15. **The "Phantom Hitbox" (Near Misses)**
+    -   **Concept:** Make the player's collision box 10% smaller than their visual size.
+    -   **Effect:** Players will survive moments they thought would kill them.
+    -   **Feedback:** Trigger a "Scrape" effect (sparks + harsh sound) when this buffer is used. This creates a "God Moment" where the player feels skilled/lucky.
+
+16. **Sawtooth Difficulty Curve**
+    -   **Concept:** Instead of linear speed increase, use a "Tension & Release" pattern.
+    -   **Pattern:** Speed up for 30s -> Slow down slightly for 10s (Recovery) -> Speed up higher.
+    -   **Why:** Constant stress causes fatigue. Recovery periods allow players to settle into a "Flow State".
+
+17. **Hit Stop (Impact Frames)**
+    -   **Concept:** Freeze the game loop for 30-50ms when a player dies or hits a major powerup.
+    -   **Why:** Adds "weight" and impact to the action. Makes the game feel more physical.
+
+18. **Audio Pitch Ramping**
+    -   **Concept:** Increase the pitch of the "Pass" sound by a semitone for every consecutive perfect ring.
+    -   **Effect:** Creates a melody from gameplay and builds subconscious tension/excitement.
+
+19. **Endowed Progress**
+    -   **Concept:** If a player loses with a high score, start their *next* run with the Combo meter partially filled.
+    -   **Why:** Players are more likely to play again if they feel they aren't starting completely from zero.
+
+20. **Zeigarnik Effect (Unfinished Business)**
+    -   **Concept:** On the Game Over screen, explicitly show "12 points away from unlocking [Next Theme]".
+    -   **Why:** People remember unfinished tasks better than completed ones.
