@@ -41,11 +41,20 @@ export class GameState {
         // Powerup states
         this.activePowerups = {};
         this.hasShield = false;
+        this.extraLifeStored = false; // Banked extra shield
         this.slowTimeActive = false;
-        this.tinyModeActive = false;
-        this.doublePointsActive = false;
-        this.magnetizeActive = false;
+        this.freezeActive = false;
         this.ghostActive = false;
+        this.tinyModeActive = false;
+        this.giantModeActive = false;
+        this.doublePointsActive = false;
+        this.triplePointsActive = false;
+        this.perfectStreakActive = false;
+        this.comboKeeperActive = false;
+        this.magnetizeActive = false;
+        this.wideGapActive = false;
+        this.reverseRingsActive = false;
+        this.rainbowActive = false;
 
         // Visual effects
         this.screenShake = 0;
@@ -68,7 +77,13 @@ export class GameState {
     }
 
     pickNextPowerup() {
-        const types = ['slowTime', 'shield', 'tinyMode', 'doublePoints', 'magnetize', 'ghost'];
+        const types = [
+            'slowTime', 'shield', 'ghost', 'freeze',
+            'tinyMode', 'giantMode',
+            'doublePoints', 'triplePoints', 'perfectStreak', 'comboKeeper',
+            'magnetize', 'wideGap',
+            'clearRings', 'extraLife', 'reverseRings', 'rainbow'
+        ];
         return types[Math.floor(Math.random() * types.length)];
     }
 

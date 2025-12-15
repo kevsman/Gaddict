@@ -236,12 +236,63 @@ export class Renderer {
         ctx.globalAlpha = 1;
     }
 
-    drawPlayer(playerSize, colors, hasShield, ghostActive, tinyModeActive, magnetizeActive, isHolding, isPlaying, pulseScale = 1) {
+    drawPlayer(playerSize, colors, hasShield, ghostActive, tinyModeActive, giantModeActive, magnetizeActive, freezeActive, rainbowActive, isHolding, isPlaying, pulseScale = 1) {
         const ctx = this.ctx;
         const time = Date.now() * 0.003;
 
         // Apply satisfaction pulse to player size
         const pulsedSize = playerSize * pulseScale;
+
+        // Rainbow mode - cycle through colors
+        let playerColor = colors.player;
+        if (rainbowActive) {
+            const hue = (Date.now() * 0.3) % 360;
+            playerColor = `hsl(${hue}, 80%, 60%)`;
+        }
+
+        // Freeze effect - ice crystals around player
+        if (freezeActive) {
+            ctx.save();
+            ctx.translate(this.centerX, this.centerY);
+            for (let i = 0; i < 12; i++) {
+                const angle = (i * Math.PI * 2) / 12 + time * 0.2;
+                const dist = pulsedSize + 20 + Math.sin(time * 2 + i) * 5;
+                const x = Math.cos(angle) * dist;
+                const y = Math.sin(angle) * dist;
+                
+                // Ice crystal shape
+                ctx.beginPath();
+                ctx.moveTo(x, y - 6);
+                ctx.lineTo(x + 4, y);
+                ctx.lineTo(x, y + 6);
+                ctx.lineTo(x - 4, y);
+                ctx.closePath();
+                ctx.fillStyle = `rgba(0, 255, 255, ${0.6 + Math.sin(time + i) * 0.2})`;
+                ctx.fill();
+            }
+            ctx.restore();
+            
+            // Frozen aura
+            ctx.beginPath();
+            ctx.arc(this.centerX, this.centerY, pulsedSize + 15, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(0, 255, 255, ${0.3 + Math.sin(time * 2) * 0.1})`;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        // Giant mode effect - powerful aura
+        if (giantModeActive) {
+            // Expanding power rings
+            for (let i = 0; i < 3; i++) {
+                const ringPulse = ((Date.now() + i * 300) % 1000) / 1000;
+                const ringRadius = pulsedSize + ringPulse * 40;
+                ctx.beginPath();
+                ctx.arc(this.centerX, this.centerY, ringRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(255, 140, 0, ${0.4 * (1 - ringPulse)})`;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
+        }
 
         // Ghost mode effect - ethereal appearance
         if (ghostActive) {
@@ -378,7 +429,7 @@ export class Renderer {
         // Main player circle - clean solid color with subtle edge
         ctx.beginPath();
         ctx.arc(this.centerX, this.centerY, pulsedSize, 0, Math.PI * 2);
-        ctx.fillStyle = colors.player;
+        ctx.fillStyle = playerColor;
         ctx.fill();
 
         // Subtle lighter edge highlight
@@ -391,7 +442,7 @@ export class Renderer {
         ctx.fill();
 
         // Holding indicator - pulsing expansion ring
-        if (isHolding && isPlaying && !tinyModeActive) {
+        if (isHolding && isPlaying && !tinyModeActive && !giantModeActive) {
             const expandPulse = (Date.now() % 500) / 500;
             ctx.beginPath();
             ctx.arc(this.centerX, this.centerY, pulsedSize + expandPulse * 15, 0, Math.PI * 2);
@@ -410,10 +461,33 @@ export class Renderer {
         return `rgb(${R}, ${G}, ${B})`;
     }
 
-    drawSlowTimeEffect(active) {
-        if (active) {
-            const ctx = this.ctx;
-            const time = Date.now() * 0.002;
+    drawSlowTimeEffect(slowActive, freezeActive) {
+        const ctx = this.ctx;
+        const time = Date.now() * 0.002;
+        
+        if (freezeActive) {
+            // Freeze effect - blue/white frozen overlay
+            const pulse = Math.sin(time) * 0.03 + 0.12;
+            
+            // Ice vignette
+            const vignette = ctx.createRadialGradient(this.centerX, this.centerY, this.height * 0.2, this.centerX, this.centerY, this.height * 0.9);
+            vignette.addColorStop(0, 'transparent');
+            vignette.addColorStop(1, `rgba(0, 255, 255, ${pulse})`);
+            ctx.fillStyle = vignette;
+            ctx.fillRect(0, 0, this.width, this.height);
+            
+            // Frost particles (stationary, sparkling)
+            for (let i = 0; i < 30; i++) {
+                const x = (Math.sin(i * 1.7) * 0.5 + 0.5) * this.width;
+                const y = (Math.cos(i * 2.3) * 0.5 + 0.5) * this.height;
+                const sparkle = Math.sin(time * 5 + i * 0.5) * 0.5 + 0.5;
+                
+                ctx.beginPath();
+                ctx.arc(x, y, 2 + sparkle * 2, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(255, 255, 255, ${sparkle * 0.6})`;
+                ctx.fill();
+            }
+        } else if (slowActive) {
             const pulse = Math.sin(time) * 0.02 + 0.08;
 
             // Vignette effect
@@ -444,6 +518,30 @@ export class Renderer {
                 ctx.fill();
             }
             ctx.restore();
+        }
+    }
+    
+    drawRainbowEffect() {
+        const ctx = this.ctx;
+        const time = Date.now() * 0.003;
+        
+        // Rainbow border around screen
+        const hue = (Date.now() * 0.2) % 360;
+        ctx.strokeStyle = `hsla(${hue}, 100%, 60%, 0.3)`;
+        ctx.lineWidth = 8;
+        ctx.strokeRect(4, 4, this.width - 8, this.height - 8);
+        
+        // Floating rainbow particles
+        for (let i = 0; i < 20; i++) {
+            const particleHue = (hue + i * 18) % 360;
+            const x = (Math.sin(time * 0.5 + i * 0.8) * 0.4 + 0.5) * this.width;
+            const y = ((time * 0.15 + i * 0.1) % 1) * this.height;
+            const size = 3 + Math.sin(time * 2 + i) * 2;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${particleHue}, 100%, 60%, 0.6)`;
+            ctx.fill();
         }
     }
 

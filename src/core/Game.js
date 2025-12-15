@@ -157,20 +157,31 @@ export class Game {
         // Exciting activation messages for each powerup
         const activationMessages = {
             slowTime: ['⏱️ TIME SLOWED!', '⏱️ MATRIX MODE!', '⏱️ SLOW-MO!'],
-            shield: ['🛡️ PROTECTED!', '🛡️ SHIELD UP!', '🛡️ INVINCIBLE!'],
-            tinyMode: ['🔬 TINY MODE!', '🔬 SHRINK RAY!', '🔬 MINI ME!'],
-            doublePoints: ['⭐ 2X POINTS!', '⭐ DOUBLE UP!', '⭐ BONUS MODE!'],
-            magnetize: ['🧲 MAGNETIZED!', '🧲 ATTRACTION!', '🧲 PULL POWER!'],
+            shield: ['🛡️ PROTECTED!', '🛡️ SHIELD UP!', '🛡️ ARMOR ON!'],
             ghost: ['👻 GHOST MODE!', '👻 PHASING!', '👻 UNTOUCHABLE!'],
+            freeze: ['❄️ FROZEN!', '❄️ TIME STOP!', '❄️ ICE AGE!'],
+            tinyMode: ['🔬 TINY MODE!', '🔬 SHRINK RAY!', '🔬 MINI ME!'],
+            giantMode: ['🦖 GIANT MODE!', '🦖 MEGA SIZE!', '🦖 HULK SMASH!'],
+            doublePoints: ['⭐ 2X POINTS!', '⭐ DOUBLE UP!', '⭐ BONUS MODE!'],
+            triplePoints: ['💎 3X POINTS!', '💎 TRIPLE THREAT!', '💎 JACKPOT!'],
+            perfectStreak: ['✨ PERFECTION!', '✨ FLAWLESS!', '✨ GOLDEN TOUCH!'],
+            comboKeeper: ['🔒 COMBO LOCKED!', '🔒 UNBREAKABLE!', '🔒 SECURED!'],
+            magnetize: ['🧲 MAGNETIZED!', '🧲 ATTRACTION!', '🧲 PULL POWER!'],
+            wideGap: ['🚪 WIDE OPEN!', '🚪 EASY MODE!', '🚪 BIG GAPS!'],
+            clearRings: ['💥 BOOM!', '💥 CLEARED!', '💥 OBLITERATED!'],
+            extraLife: ['❤️ LIFE BANKED!', '❤️ EXTRA LIFE!', '❤️ SAVED!'],
+            reverseRings: ['🔄 REVERSED!', '🔄 REWIND!', '🔄 FLIP IT!'],
+            rainbow: ['🌈 RAINBOW!', '🌈 DISCO TIME!', '🌈 PARTY MODE!'],
         };
         const messages = activationMessages[type] || [powerupInfo.icon + ' ' + powerupInfo.name];
         const message = messages[Math.floor(Math.random() * messages.length)];
         this.ui.showComboPopup(message);
 
         // Trigger a satisfaction pulse for the powerup
-        this.state.triggerPulse(2); // Type 2 = combo/powerup pulse (biggest)
+        this.state.triggerPulse(2);
 
         switch (type) {
+            // DEFENSIVE
             case 'slowTime':
                 this.state.slowTimeActive = true;
                 this.state.activePowerups.slowTime = Date.now() + powerupInfo.duration;
@@ -179,21 +190,84 @@ export class Game {
                 this.state.hasShield = true;
                 sound.play('shield');
                 break;
+            case 'ghost':
+                this.state.ghostActive = true;
+                this.state.activePowerups.ghost = Date.now() + powerupInfo.duration;
+                break;
+            case 'freeze':
+                this.state.freezeActive = true;
+                this.state.activePowerups.freeze = Date.now() + powerupInfo.duration;
+                break;
+            
+            // SIZE
             case 'tinyMode':
                 this.state.tinyModeActive = true;
+                this.state.giantModeActive = false; // Cancel giant if active
                 this.state.activePowerups.tinyMode = Date.now() + powerupInfo.duration;
+                delete this.state.activePowerups.giantMode;
                 break;
+            case 'giantMode':
+                this.state.giantModeActive = true;
+                this.state.tinyModeActive = false; // Cancel tiny if active
+                this.state.activePowerups.giantMode = Date.now() + powerupInfo.duration;
+                delete this.state.activePowerups.tinyMode;
+                break;
+            
+            // SCORING
             case 'doublePoints':
                 this.state.doublePointsActive = true;
                 this.state.activePowerups.doublePoints = Date.now() + powerupInfo.duration;
                 break;
+            case 'triplePoints':
+                this.state.triplePointsActive = true;
+                this.state.doublePointsActive = false; // Triple overrides double
+                this.state.activePowerups.triplePoints = Date.now() + powerupInfo.duration;
+                delete this.state.activePowerups.doublePoints;
+                break;
+            case 'perfectStreak':
+                this.state.perfectStreakActive = true;
+                this.state.activePowerups.perfectStreak = Date.now() + powerupInfo.duration;
+                break;
+            case 'comboKeeper':
+                this.state.comboKeeperActive = true;
+                this.state.activePowerups.comboKeeper = Date.now() + powerupInfo.duration;
+                break;
+            
+            // ASSIST
             case 'magnetize':
                 this.state.magnetizeActive = true;
                 this.state.activePowerups.magnetize = Date.now() + powerupInfo.duration;
                 break;
-            case 'ghost':
-                this.state.ghostActive = true;
-                this.state.activePowerups.ghost = Date.now() + powerupInfo.duration;
+            case 'wideGap':
+                this.state.wideGapActive = true;
+                this.state.activePowerups.wideGap = Date.now() + powerupInfo.duration;
+                break;
+            
+            // SPECIAL (instant effects)
+            case 'clearRings':
+                // Clear all rings on screen!
+                for (const ring of this.state.rings) {
+                    if (!ring.passed) {
+                        ring.markPassed('#ff4444');
+                        this.particles.ring(this.renderer.centerX, this.renderer.centerY, ring.radius, '#ff4444', 8);
+                    }
+                }
+                this.state.rings = [];
+                break;
+            case 'extraLife':
+                if (this.state.hasShield) {
+                    this.state.extraLifeStored = true; // Bank it for later
+                } else {
+                    this.state.hasShield = true; // Use it now
+                }
+                break;
+            case 'reverseRings':
+                this.state.reverseRingsActive = true;
+                this.state.activePowerups.reverseRings = Date.now() + powerupInfo.duration;
+                break;
+            case 'rainbow':
+                this.state.rainbowActive = true;
+                this.state.activePowerups.rainbow = Date.now() + powerupInfo.duration;
                 break;
         }
 
@@ -219,29 +293,35 @@ export class Game {
     updatePowerups() {
         const now = Date.now();
 
-        if (this.state.activePowerups.slowTime && now > this.state.activePowerups.slowTime) {
-            this.state.slowTimeActive = false;
-            delete this.state.activePowerups.slowTime;
+        // Check each timed powerup for expiration
+        const timedPowerups = [
+            { key: 'slowTime', state: 'slowTimeActive' },
+            { key: 'freeze', state: 'freezeActive' },
+            { key: 'ghost', state: 'ghostActive' },
+            { key: 'tinyMode', state: 'tinyModeActive' },
+            { key: 'giantMode', state: 'giantModeActive' },
+            { key: 'doublePoints', state: 'doublePointsActive' },
+            { key: 'triplePoints', state: 'triplePointsActive' },
+            { key: 'perfectStreak', state: 'perfectStreakActive' },
+            { key: 'comboKeeper', state: 'comboKeeperActive' },
+            { key: 'magnetize', state: 'magnetizeActive' },
+            { key: 'wideGap', state: 'wideGapActive' },
+            { key: 'reverseRings', state: 'reverseRingsActive' },
+            { key: 'rainbow', state: 'rainbowActive' },
+        ];
+
+        for (const powerup of timedPowerups) {
+            if (this.state.activePowerups[powerup.key] && now > this.state.activePowerups[powerup.key]) {
+                this.state[powerup.state] = false;
+                delete this.state.activePowerups[powerup.key];
+            }
         }
 
-        if (this.state.activePowerups.tinyMode && now > this.state.activePowerups.tinyMode) {
-            this.state.tinyModeActive = false;
-            delete this.state.activePowerups.tinyMode;
-        }
-
-        if (this.state.activePowerups.doublePoints && now > this.state.activePowerups.doublePoints) {
-            this.state.doublePointsActive = false;
-            delete this.state.activePowerups.doublePoints;
-        }
-
-        if (this.state.activePowerups.magnetize && now > this.state.activePowerups.magnetize) {
-            this.state.magnetizeActive = false;
-            delete this.state.activePowerups.magnetize;
-        }
-
-        if (this.state.activePowerups.ghost && now > this.state.activePowerups.ghost) {
-            this.state.ghostActive = false;
-            delete this.state.activePowerups.ghost;
+        // Check if stored extra life should become active shield
+        if (this.state.extraLifeStored && !this.state.hasShield) {
+            this.state.extraLifeStored = false;
+            this.state.hasShield = true;
+            this.ui.showComboPopup('❤️ EXTRA LIFE ACTIVATED!');
         }
 
         this.ui.updatePowerupIndicator(this.state.activePowerups, this.state.hasShield, POWERUP_TYPES);
@@ -293,6 +373,10 @@ export class Game {
         // Calculate effective speed
         let effectiveSpeed = this.state.ringSpeed;
         if (this.state.slowTimeActive) effectiveSpeed *= 0.4;
+        if (this.state.freezeActive) effectiveSpeed = 0; // Complete stop!
+
+        // Reverse rings direction
+        if (this.state.reverseRingsActive) effectiveSpeed *= -0.5;
 
         // Apply subtle pushback to rings if any
         const pushback = this.state.applyClearancePushback();
@@ -313,6 +397,9 @@ export class Game {
         if (this.state.tinyModeActive) {
             // Tiny mode: force minimum size
             this.state.targetSize = GAME_CONFIG.MIN_PLAYER_SIZE;
+        } else if (this.state.giantModeActive) {
+            // Giant mode: force maximum size
+            this.state.targetSize = GAME_CONFIG.MAX_PLAYER_SIZE;
         } else if (this.state.isHolding) {
             this.state.targetSize = Math.min(GAME_CONFIG.MAX_PLAYER_SIZE, this.state.targetSize + GAME_CONFIG.PLAYER_GROW_SPEED);
         } else {
@@ -343,6 +430,13 @@ export class Game {
         for (const ring of this.state.rings) {
             ring.update(effectiveSpeed);
 
+            // Wide gap powerup - temporarily increase ring gap
+            if (this.state.wideGapActive && !ring.gapWidened) {
+                ring.innerRadius -= 10;
+                ring.outerRadius += 10;
+                ring.gapWidened = true;
+            }
+
             if (ring.isAtPlayer(this.state.playerSize)) {
                 // Ghost mode: always pass through
                 // Magnetize: rings adjust their gap to fit player
@@ -351,27 +445,38 @@ export class Game {
                 
                 // Magnetize makes rings easier - widen the gap temporarily
                 if (this.state.magnetizeActive && !fitsGap) {
-                    // Check if player is close to fitting
                     const sizeDiff = Math.abs(this.state.playerSize - ring.requiredSize);
                     if (sizeDiff < 25) {
-                        fitsGap = true; // Magnetize pulls you through!
+                        fitsGap = true;
                     }
                 }
 
                 if (fitsGap) {
                     // Success
-                    const isPerfect = this.godMode ? Math.random() > 0.5 : ring.isPerfectPass(this.state.playerSize);
+                    let isPerfect = this.godMode ? Math.random() > 0.5 : ring.isPerfectPass(this.state.playerSize);
+                    
+                    // Perfect streak powerup - all passes are perfect!
+                    if (this.state.perfectStreakActive) isPerfect = true;
+                    
                     ring.markPassed(colors.ringPassed);
 
                     if (isPerfect) {
                         this.state.incrementCombo();
                         sound.play('perfect');
                     } else {
-                        this.state.resetCombo();
+                        // Combo keeper prevents combo reset on non-perfect
+                        if (!this.state.comboKeeperActive) {
+                            this.state.resetCombo();
+                        }
                         sound.play('pass');
                     }
 
-                    this.state.addScore(1);
+                    // Calculate points with multipliers
+                    let points = 1;
+                    if (this.state.triplePointsActive) points *= 3;
+                    else if (this.state.doublePointsActive) points *= 2;
+                    
+                    this.state.addScore(points);
                     this.ui.updateMultiplier(this.state.multiplier, this.state.multiplier > 1);
 
                     // Trigger satisfaction pulse
@@ -379,7 +484,7 @@ export class Game {
                         this.ui.showComboPopup(`🔥 ${this.state.combo} COMBO!`);
                         sound.play('combo');
                         haptic.medium();
-                        this.state.triggerPulse(2); // Combo pulse (biggest)
+                        this.state.triggerPulse(2);
                     } else if (isPerfect) {
                         this.state.triggerPulse(1); // Perfect pulse (medium)
                         haptic.light();
@@ -465,14 +570,17 @@ export class Game {
         // Particles
         this.particles.draw(this.renderer.ctx);
 
-        // Player with integrated powerup progress ring
+        // Player with powerup visual states
         this.renderer.drawPlayer(
             this.state.playerSize,
             colors,
             this.state.hasShield,
             this.state.ghostActive,
             this.state.tinyModeActive,
+            this.state.giantModeActive,
             this.state.magnetizeActive,
+            this.state.freezeActive,
+            this.state.rainbowActive,
             this.state.isHolding,
             this.state.isPlaying,
             this.state.getPulseScale()
@@ -487,8 +595,13 @@ export class Game {
             this.state.isPowerupReady()
         );
 
-        // Slow time effect
-        this.renderer.drawSlowTimeEffect(this.state.slowTimeActive);
+        // Slow time / freeze effect
+        this.renderer.drawSlowTimeEffect(this.state.slowTimeActive, this.state.freezeActive);
+        
+        // Rainbow mode effect
+        if (this.state.rainbowActive) {
+            this.renderer.drawRainbowEffect();
+        }
     }
 
     gameLoop(timestamp) {
