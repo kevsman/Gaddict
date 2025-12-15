@@ -44,7 +44,7 @@ export class Renderer {
 
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.width, this.height);
-        
+
         if (screenShake > 0) {
             this.ctx.restore();
         }

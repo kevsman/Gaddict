@@ -30,6 +30,16 @@ export class Game {
         );
 
         this.lastTime = 0;
+        this.godMode = false; // Debug: auto-clear rings
+        
+        // Debug key listener
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'g' || e.key === 'G') {
+                this.godMode = !this.godMode;
+                console.log(`[DEBUG] God mode: ${this.godMode ? 'ON' : 'OFF'}`);
+            }
+        });
+        
         this.init();
     }
 
@@ -300,9 +310,12 @@ export class Game {
             ring.update(effectiveSpeed);
 
             if (ring.isAtPlayer(this.state.playerSize)) {
-                if (ring.playerFitsGap(this.state.playerSize)) {
+                // God mode: auto-fit the ring
+                const fitsGap = this.godMode || ring.playerFitsGap(this.state.playerSize);
+                
+                if (fitsGap) {
                     // Success
-                    const isPerfect = ring.isPerfectPass(this.state.playerSize);
+                    const isPerfect = this.godMode ? Math.random() > 0.5 : ring.isPerfectPass(this.state.playerSize);
                     ring.markPassed(colors.ringPassed);
 
                     if (isPerfect) {
@@ -366,7 +379,10 @@ export class Game {
             }
 
             if (ring.hasPassed()) {
-                if (this.state.hasShield) {
+                if (this.godMode) {
+                    // God mode: just mark as passed
+                    ring.passed = true;
+                } else if (this.state.hasShield) {
                     this.state.hasShield = false;
                     ring.passed = true;
                     this.ui.updatePowerupIndicator(this.state.activePowerups, false, POWERUP_TYPES);
@@ -425,22 +441,23 @@ export class Game {
 
     gameLoop(timestamp) {
         try {
-            const deltaTime = timestamp - this.lastTime;
+            const deltaTime = Math.min(timestamp - this.lastTime, 100); // Cap delta to prevent spiral
             this.lastTime = timestamp;
+
+            // Debug: log every 2 seconds
+            if (!this.lastDebugLog || timestamp - this.lastDebugLog > 2000) {
+                console.log(`[DEBUG] Score: ${this.state.score}, Rings: ${this.state.rings.length}, Particles: ${this.particles.particles.length}, Playing: ${this.state.isPlaying}`);
+                this.lastDebugLog = timestamp;
+            }
 
             this.update(deltaTime);
             this.draw();
-
-            requestAnimationFrame((t) => this.gameLoop(t));
         } catch (error) {
             console.error('Game loop error:', error);
             console.error('Stack:', error.stack);
-            console.error('State:', JSON.stringify({
-                score: this.state.score,
-                rings: this.state.rings.length,
-                powerups: this.state.powerups.length,
-                theme: this.state.currentTheme
-            }));
         }
+        
+        // Always continue the loop
+        requestAnimationFrame((t) => this.gameLoop(t));
     }
 }
