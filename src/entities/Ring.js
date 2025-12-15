@@ -3,7 +3,8 @@ import { GAME_CONFIG } from '../config/constants.js';
 // Ring Entity
 export class Ring {
     constructor(screenSize, innerRadius, outerRadius, color) {
-        this.radius = screenSize;
+        // Spawn ring just outside the visible screen
+        this.radius = screenSize + 50;
         this.innerRadius = innerRadius;
         this.outerRadius = outerRadius;
         this.gap = outerRadius - innerRadius;

@@ -1,6 +1,6 @@
 // Game Constants
 export const GAME_CONFIG = {
-    BASE_RING_SPEED: 1.2, // Slower starting speed (was 2)
+    BASE_RING_SPEED: 3, // Starting speed
     RING_SPAWN_INTERVAL_BASE: 2000, // More time between rings (was 1500)
     PLAYER_GROW_SPEED: 3,
     PLAYER_SHRINK_SPEED: 2.5,

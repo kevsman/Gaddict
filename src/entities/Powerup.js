@@ -6,7 +6,7 @@ export class Powerup {
     constructor(screenSize, type) {
         const powerupInfo = POWERUP_TYPES[type];
 
-        this.radius = screenSize * 0.7;
+        this.radius = screenSize + 30;
         this.size = GAME_CONFIG.MIN_PLAYER_SIZE + Math.random() * (GAME_CONFIG.MAX_PLAYER_SIZE - GAME_CONFIG.MIN_PLAYER_SIZE);
         this.type = type;
         this.color = powerupInfo.color;

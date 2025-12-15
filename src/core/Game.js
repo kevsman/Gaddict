@@ -78,7 +78,7 @@ export class Game {
         this.state.reset();
         this.state.loadSavedData();
         this.state.isPlaying = true;
-        this.state.lastRingSpawn = Date.now();
+        this.state.lastRingSpawn = Date.now() - this.state.ringSpawnInterval;
         this.particles.clear();
 
         this.ui.showMessage(false);
@@ -120,6 +120,7 @@ export class Game {
         const colors = this.getColors();
         const ring = createRing(this.renderer.getScreenSize(), this.state.difficulty, this.state.patternMode, colors.ring);
         this.state.rings.push(ring);
+        console.log('[DEBUG] Ring spawned, radius:', ring.radius, 'total rings:', this.state.rings.length);
     }
 
     spawnPowerupFromProgress() {

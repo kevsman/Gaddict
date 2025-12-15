@@ -25,7 +25,8 @@ export class Renderer {
     }
 
     getScreenSize() {
-        return Math.max(this.width, this.height);
+        // Return distance from center to corner (radius needed to cover screen)
+        return Math.sqrt(this.width ** 2 + this.height ** 2) / 2;
     }
 
     beginFrame(backgroundColor, zoom = 1, shake = 0) {
@@ -155,7 +156,7 @@ export class Renderer {
         if (ring.radius < 0) return;
 
         const ctx = this.ctx;
-        const baseAlpha = Math.min(1, ring.radius / 150);
+        const baseAlpha = 1;
         const time = Date.now() * 0.005;
         const pulse = ring.passed ? 0 : Math.sin(time + ring.radius * 0.01) * 0.15;
 
