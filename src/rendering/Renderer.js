@@ -38,14 +38,11 @@ export class Renderer {
         }
 
         // Create gradient background instead of flat color
-        const gradient = this.ctx.createRadialGradient(
-            this.centerX, this.centerY, 0,
-            this.centerX, this.centerY, this.height
-        );
+        const gradient = this.ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, this.height);
         gradient.addColorStop(0, this.lightenColor(backgroundColor, 15));
         gradient.addColorStop(0.5, backgroundColor);
         gradient.addColorStop(1, this.darkenColor(backgroundColor, 10));
-        
+
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.width, this.height);
     }
@@ -54,8 +51,8 @@ export class Renderer {
         const num = parseInt(hex.replace('#', ''), 16);
         const amt = Math.round(2.55 * percent);
         const R = Math.min((num >> 16) + amt, 255);
-        const G = Math.min((num >> 8 & 0x00FF) + amt, 255);
-        const B = Math.min((num & 0x0000FF) + amt, 255);
+        const G = Math.min(((num >> 8) & 0x00ff) + amt, 255);
+        const B = Math.min((num & 0x0000ff) + amt, 255);
         return `rgb(${R}, ${G}, ${B})`;
     }
 
@@ -73,7 +70,7 @@ export class Renderer {
             const x = (Math.sin(time * 0.3 + i * 1.5) * 0.4 + 0.5) * this.width;
             const y = ((time * 0.05 + i * 0.1) % 1) * this.height;
             const size = 2 + Math.sin(time + i) * 1;
-            
+
             ctx.beginPath();
             ctx.arc(x, y, size, 0, Math.PI * 2);
             ctx.fillStyle = accentColor;
