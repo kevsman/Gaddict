@@ -1,6 +1,6 @@
 // Powerup Definitions
 export const POWERUP_TYPES = {
-    // DEFENSIVE POWERUPS
+    // DEFENSIVE POWERUPS (5)
     slowTime: {
         name: 'SLOW TIME',
         color: '#4ecdc4',
@@ -29,8 +29,15 @@ export const POWERUP_TYPES = {
         icon: '❄️',
         description: 'Stop all rings',
     },
+    invincible: {
+        name: 'INVINCIBLE',
+        color: '#ffd700',
+        duration: 3000,
+        icon: '⚡',
+        description: 'Immune to everything',
+    },
     
-    // SIZE POWERUPS
+    // SIZE POWERUPS (4)
     tinyMode: {
         name: 'TINY MODE',
         color: '#ff6b6b',
@@ -45,8 +52,22 @@ export const POWERUP_TYPES = {
         icon: '🦖',
         description: 'Grow to maximum',
     },
+    pulse: {
+        name: 'AUTO PULSE',
+        color: '#ff77aa',
+        duration: 5000,
+        icon: '💓',
+        description: 'Auto-size to fit rings',
+    },
+    elastic: {
+        name: 'ELASTIC',
+        color: '#77ddaa',
+        duration: 6000,
+        icon: '🎈',
+        description: 'Faster size changes',
+    },
     
-    // SCORING POWERUPS
+    // SCORING POWERUPS (6)
     doublePoints: {
         name: '2X POINTS',
         color: '#a855f7',
@@ -75,8 +96,22 @@ export const POWERUP_TYPES = {
         icon: '🔒',
         description: 'Combo never resets',
     },
+    comboBoost: {
+        name: 'COMBO BOOST',
+        color: '#ff5500',
+        duration: 0,
+        icon: '🚀',
+        description: 'Instantly add +10 combo',
+    },
+    jackpot: {
+        name: 'JACKPOT',
+        color: '#ffcc00',
+        duration: 0,
+        icon: '🎰',
+        description: 'Random bonus points',
+    },
     
-    // ASSIST POWERUPS
+    // ASSIST POWERUPS (6)
     magnetize: {
         name: 'MAGNET',
         color: '#ff69b4',
@@ -91,21 +126,42 @@ export const POWERUP_TYPES = {
         icon: '🚪',
         description: 'Rings have bigger gaps',
     },
+    slowRings: {
+        name: 'SLOW RINGS',
+        color: '#aaddff',
+        duration: 6000,
+        icon: '🐢',
+        description: 'Rings move slower',
+    },
+    noDoubles: {
+        name: 'NO DOUBLES',
+        color: '#bbff99',
+        duration: 8000,
+        icon: '1️⃣',
+        description: 'No double rings spawn',
+    },
+    autoPass: {
+        name: 'AUTO PASS',
+        color: '#ffaa55',
+        duration: 3000,
+        icon: '🤖',
+        description: 'Rings pass automatically',
+    },
+    xray: {
+        name: 'X-RAY',
+        color: '#aaffaa',
+        duration: 5000,
+        icon: '👁️',
+        description: 'See ring safe zones',
+    },
     
-    // SPECIAL POWERUPS
+    // RING MANIPULATION (5)
     clearRings: {
         name: 'CLEAR ALL',
         color: '#ff4444',
         duration: 0,
         icon: '💥',
         description: 'Destroy all rings',
-    },
-    extraLife: {
-        name: 'EXTRA LIFE',
-        color: '#ff6699',
-        duration: 0,
-        icon: '❤️',
-        description: 'Bank an extra shield',
     },
     reverseRings: {
         name: 'REVERSE',
@@ -114,11 +170,55 @@ export const POWERUP_TYPES = {
         icon: '🔄',
         description: 'Rings move outward',
     },
+    shrinkRings: {
+        name: 'SHRINK RINGS',
+        color: '#ff99cc',
+        duration: 0,
+        icon: '📉',
+        description: 'All rings become smaller',
+    },
+    expandRings: {
+        name: 'EXPAND RINGS',
+        color: '#99ccff',
+        duration: 0,
+        icon: '📈',
+        description: 'All rings become bigger',
+    },
+    convertRings: {
+        name: 'CONVERT',
+        color: '#66ff66',
+        duration: 0,
+        icon: '💚',
+        description: 'All rings count as passed',
+    },
+    
+    // SPECIAL / FUN POWERUPS (4)
+    extraLife: {
+        name: 'EXTRA LIFE',
+        color: '#ff6699',
+        duration: 0,
+        icon: '❤️',
+        description: 'Bank an extra shield',
+    },
     rainbow: {
         name: 'RAINBOW',
         color: '#ff0000',
         duration: 6000,
         icon: '🌈',
         description: 'Disco party mode!',
+    },
+    gravity: {
+        name: 'GRAVITY',
+        color: '#8855ff',
+        duration: 5000,
+        icon: '🌀',
+        description: 'Rings spiral inward',
+    },
+    mirror: {
+        name: 'MIRROR',
+        color: '#ccccff',
+        duration: 4000,
+        icon: '🪞',
+        description: 'Controls are reversed',
     },
 };

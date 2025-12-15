@@ -190,22 +190,42 @@ export class Game {
 
         // Exciting activation messages for each powerup
         const activationMessages = {
+            // Defensive
             slowTime: ['⏱️ TIME SLOWED!', '⏱️ MATRIX MODE!', '⏱️ SLOW-MO!'],
             shield: ['🛡️ PROTECTED!', '🛡️ SHIELD UP!', '🛡️ ARMOR ON!'],
             ghost: ['👻 GHOST MODE!', '👻 PHASING!', '👻 UNTOUCHABLE!'],
             freeze: ['❄️ FROZEN!', '❄️ TIME STOP!', '❄️ ICE AGE!'],
+            invincible: ['⚡ INVINCIBLE!', '⚡ GODMODE!', '⚡ UNSTOPPABLE!'],
+            // Size
             tinyMode: ['🔬 TINY MODE!', '🔬 SHRINK RAY!', '🔬 MINI ME!'],
             giantMode: ['🦖 GIANT MODE!', '🦖 MEGA SIZE!', '🦖 HULK SMASH!'],
+            pulse: ['💓 AUTO PULSE!', '💓 HEARTBEAT!', '💓 PERFECT FIT!'],
+            elastic: ['🎈 ELASTIC!', '🎈 STRETCHY!', '🎈 BENDY!'],
+            // Scoring
             doublePoints: ['⭐ 2X POINTS!', '⭐ DOUBLE UP!', '⭐ BONUS MODE!'],
-            triplePoints: ['💎 3X POINTS!', '💎 TRIPLE THREAT!', '💎 JACKPOT!'],
+            triplePoints: ['💎 3X POINTS!', '💎 TRIPLE THREAT!', '💎 MEGA BONUS!'],
             perfectStreak: ['✨ PERFECTION!', '✨ FLAWLESS!', '✨ GOLDEN TOUCH!'],
             comboKeeper: ['🔒 COMBO LOCKED!', '🔒 UNBREAKABLE!', '🔒 SECURED!'],
+            comboBoost: ['🚀 COMBO BOOST!', '🚀 +10 COMBO!', '🚀 ROCKET!'],
+            jackpot: ['🎰 JACKPOT!', '🎰 LUCKY!', '🎰 BIG WIN!'],
+            // Assist
             magnetize: ['🧲 MAGNETIZED!', '🧲 ATTRACTION!', '🧲 PULL POWER!'],
             wideGap: ['🚪 WIDE OPEN!', '🚪 EASY MODE!', '🚪 BIG GAPS!'],
+            slowRings: ['🐢 SLOW RINGS!', '🐢 EASY PACE!', '🐢 CHILL MODE!'],
+            noDoubles: ['1️⃣ NO DOUBLES!', '1️⃣ SINGLES ONLY!', '1️⃣ SIMPLE!'],
+            autoPass: ['🤖 AUTO PASS!', '🤖 ROBOT MODE!', '🤖 AUTOPILOT!'],
+            xray: ['👁️ X-RAY!', '👁️ VISION!', '👁️ SEE ALL!'],
+            // Ring manipulation
             clearRings: ['💥 BOOM!', '💥 CLEARED!', '💥 OBLITERATED!'],
-            extraLife: ['❤️ LIFE BANKED!', '❤️ EXTRA LIFE!', '❤️ SAVED!'],
             reverseRings: ['🔄 REVERSED!', '🔄 REWIND!', '🔄 FLIP IT!'],
+            shrinkRings: ['📉 SHRINK RINGS!', '📉 SMALLER!', '📉 COMPACT!'],
+            expandRings: ['📈 EXPAND RINGS!', '📈 BIGGER!', '📈 GROW!'],
+            convertRings: ['💚 CONVERTED!', '💚 ALL CLEAR!', '💚 FREE PASS!'],
+            // Special
+            extraLife: ['❤️ LIFE BANKED!', '❤️ EXTRA LIFE!', '❤️ SAVED!'],
             rainbow: ['🌈 RAINBOW!', '🌈 DISCO TIME!', '🌈 PARTY MODE!'],
+            gravity: ['🌀 GRAVITY!', '🌀 SPIRAL!', '🌀 VORTEX!'],
+            mirror: ['🪞 MIRROR!', '🪞 REVERSED!', '🪞 FLIP CONTROLS!'],
         };
         const messages = activationMessages[type] || [powerupInfo.icon + ' ' + powerupInfo.name];
         const message = messages[Math.floor(Math.random() * messages.length)];
@@ -266,6 +286,18 @@ export class Game {
                 this.state.comboKeeperActive = true;
                 this.state.activePowerups.comboKeeper = Date.now() + powerupInfo.duration;
                 break;
+            case 'comboBoost':
+                // Instant +10 combo
+                this.state.combo += 10;
+                this.state.updateMultiplier();
+                this.ui.updateMultiplier(this.state.multiplier, true);
+                break;
+            case 'jackpot':
+                // Random bonus points (10-100)
+                const bonusPoints = Math.floor(Math.random() * 91) + 10;
+                this.state.addScore(bonusPoints);
+                this.ui.showComboPopup(`🎰 +${bonusPoints} POINTS!`);
+                break;
 
             // ASSIST
             case 'magnetize':
@@ -276,8 +308,24 @@ export class Game {
                 this.state.wideGapActive = true;
                 this.state.activePowerups.wideGap = Date.now() + powerupInfo.duration;
                 break;
+            case 'slowRings':
+                this.state.slowRingsActive = true;
+                this.state.activePowerups.slowRings = Date.now() + powerupInfo.duration;
+                break;
+            case 'noDoubles':
+                this.state.noDoublesActive = true;
+                this.state.activePowerups.noDoubles = Date.now() + powerupInfo.duration;
+                break;
+            case 'autoPass':
+                this.state.autoPassActive = true;
+                this.state.activePowerups.autoPass = Date.now() + powerupInfo.duration;
+                break;
+            case 'xray':
+                this.state.xrayActive = true;
+                this.state.activePowerups.xray = Date.now() + powerupInfo.duration;
+                break;
 
-            // SPECIAL (instant effects)
+            // RING MANIPULATION (instant effects)
             case 'clearRings':
                 // Clear all rings on screen!
                 this.screenShake = 15;
@@ -289,6 +337,39 @@ export class Game {
                 }
                 this.state.rings = [];
                 break;
+            case 'reverseRings':
+                this.state.reverseRingsActive = true;
+                this.state.activePowerups.reverseRings = Date.now() + powerupInfo.duration;
+                break;
+            case 'shrinkRings':
+                // Shrink all current rings
+                for (const ring of this.state.rings) {
+                    ring.outerRadius *= 0.7;
+                    ring.innerRadius *= 0.7;
+                    ring.requiredSize *= 0.7;
+                }
+                break;
+            case 'expandRings':
+                // Expand all current rings
+                for (const ring of this.state.rings) {
+                    ring.outerRadius *= 1.3;
+                    ring.innerRadius *= 1.3;
+                    ring.requiredSize *= 1.3;
+                }
+                break;
+            case 'convertRings':
+                // Mark all rings as passed and give points
+                for (const ring of this.state.rings) {
+                    if (!ring.passed) {
+                        ring.markPassed('#66ff66');
+                        this.state.addScore(1);
+                        this.particles.ring(this.renderer.centerX, this.renderer.centerY, ring.radius, '#66ff66', 6);
+                    }
+                }
+                this.state.rings = this.state.rings.filter(r => r.passed);
+                break;
+
+            // SPECIAL
             case 'extraLife':
                 if (this.state.hasShield) {
                     this.state.extraLifeStored = true; // Bank it for later
@@ -296,13 +377,29 @@ export class Game {
                     this.state.hasShield = true; // Use it now
                 }
                 break;
-            case 'reverseRings':
-                this.state.reverseRingsActive = true;
-                this.state.activePowerups.reverseRings = Date.now() + powerupInfo.duration;
-                break;
             case 'rainbow':
                 this.state.rainbowActive = true;
                 this.state.activePowerups.rainbow = Date.now() + powerupInfo.duration;
+                break;
+            case 'gravity':
+                this.state.gravityActive = true;
+                this.state.activePowerups.gravity = Date.now() + powerupInfo.duration;
+                break;
+            case 'mirror':
+                this.state.mirrorActive = true;
+                this.state.activePowerups.mirror = Date.now() + powerupInfo.duration;
+                break;
+            case 'invincible':
+                this.state.invincibleActive = true;
+                this.state.activePowerups.invincible = Date.now() + powerupInfo.duration;
+                break;
+            case 'pulse':
+                this.state.pulseActive = true;
+                this.state.activePowerups.pulse = Date.now() + powerupInfo.duration;
+                break;
+            case 'elastic':
+                this.state.elasticActive = true;
+                this.state.activePowerups.elastic = Date.now() + powerupInfo.duration;
                 break;
         }
 
@@ -330,19 +427,34 @@ export class Game {
 
         // Check each timed powerup for expiration
         const timedPowerups = [
+            // Defensive
             { key: 'slowTime', state: 'slowTimeActive' },
             { key: 'freeze', state: 'freezeActive' },
             { key: 'ghost', state: 'ghostActive' },
+            { key: 'invincible', state: 'invincibleActive' },
+            // Size
             { key: 'tinyMode', state: 'tinyModeActive' },
             { key: 'giantMode', state: 'giantModeActive' },
+            { key: 'pulse', state: 'pulseActive' },
+            { key: 'elastic', state: 'elasticActive' },
+            // Scoring
             { key: 'doublePoints', state: 'doublePointsActive' },
             { key: 'triplePoints', state: 'triplePointsActive' },
             { key: 'perfectStreak', state: 'perfectStreakActive' },
             { key: 'comboKeeper', state: 'comboKeeperActive' },
+            // Assist
             { key: 'magnetize', state: 'magnetizeActive' },
             { key: 'wideGap', state: 'wideGapActive' },
+            { key: 'slowRings', state: 'slowRingsActive' },
+            { key: 'noDoubles', state: 'noDoublesActive' },
+            { key: 'autoPass', state: 'autoPassActive' },
+            { key: 'xray', state: 'xrayActive' },
+            // Ring manipulation
             { key: 'reverseRings', state: 'reverseRingsActive' },
+            // Special
             { key: 'rainbow', state: 'rainbowActive' },
+            { key: 'gravity', state: 'gravityActive' },
+            { key: 'mirror', state: 'mirrorActive' },
         ];
 
         for (const powerup of timedPowerups) {

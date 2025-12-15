@@ -42,19 +42,34 @@ export class GameState {
         this.activePowerups = {};
         this.hasShield = false;
         this.extraLifeStored = false; // Banked extra shield
+        // Defensive
         this.slowTimeActive = false;
         this.freezeActive = false;
         this.ghostActive = false;
+        this.invincibleActive = false;
+        // Size
         this.tinyModeActive = false;
         this.giantModeActive = false;
+        this.pulseActive = false;
+        this.elasticActive = false;
+        // Scoring
         this.doublePointsActive = false;
         this.triplePointsActive = false;
         this.perfectStreakActive = false;
         this.comboKeeperActive = false;
+        // Assist
         this.magnetizeActive = false;
         this.wideGapActive = false;
+        this.slowRingsActive = false;
+        this.noDoublesActive = false;
+        this.autoPassActive = false;
+        this.xrayActive = false;
+        // Ring manipulation
         this.reverseRingsActive = false;
+        // Special
         this.rainbowActive = false;
+        this.gravityActive = false;
+        this.mirrorActive = false;
 
         // Visual effects
         this.screenShake = 0;
@@ -87,11 +102,18 @@ export class GameState {
 
     pickNextPowerup() {
         const types = [
-            'slowTime', 'shield', 'ghost', 'freeze',
-            'tinyMode', 'giantMode',
-            'doublePoints', 'triplePoints', 'perfectStreak', 'comboKeeper',
-            'magnetize', 'wideGap',
-            'clearRings', 'extraLife', 'reverseRings', 'rainbow'
+            // Defensive (5)
+            'slowTime', 'shield', 'ghost', 'freeze', 'invincible',
+            // Size (4)
+            'tinyMode', 'giantMode', 'pulse', 'elastic',
+            // Scoring (6)
+            'doublePoints', 'triplePoints', 'perfectStreak', 'comboKeeper', 'comboBoost', 'jackpot',
+            // Assist (6)
+            'magnetize', 'wideGap', 'slowRings', 'noDoubles', 'autoPass', 'xray',
+            // Ring manipulation (5)
+            'clearRings', 'reverseRings', 'shrinkRings', 'expandRings', 'convertRings',
+            // Special (4)
+            'extraLife', 'rainbow', 'gravity', 'mirror'
         ];
         return types[Math.floor(Math.random() * types.length)];
     }
