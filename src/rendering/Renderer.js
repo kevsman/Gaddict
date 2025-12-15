@@ -37,33 +37,66 @@ export class Renderer {
             this.ctx.translate(shakeX, shakeY);
         }
 
-        this.ctx.fillStyle = backgroundColor;
+        // Create gradient background instead of flat color
+        const gradient = this.ctx.createRadialGradient(
+            this.centerX, this.centerY, 0,
+            this.centerX, this.centerY, this.height
+        );
+        gradient.addColorStop(0, this.lightenColor(backgroundColor, 15));
+        gradient.addColorStop(0.5, backgroundColor);
+        gradient.addColorStop(1, this.darkenColor(backgroundColor, 10));
+        
+        this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.width, this.height);
+    }
+
+    lightenColor(hex, percent) {
+        const num = parseInt(hex.replace('#', ''), 16);
+        const amt = Math.round(2.55 * percent);
+        const R = Math.min((num >> 16) + amt, 255);
+        const G = Math.min((num >> 8 & 0x00FF) + amt, 255);
+        const B = Math.min((num & 0x0000FF) + amt, 255);
+        return `rgb(${R}, ${G}, ${B})`;
     }
 
     restore() {
         this.ctx.restore();
     }
 
-    drawBackgroundGrid(pulse, accentColor = '#00ffaa') {
+    drawBackgroundEffects(pulse, accentColor = '#ff6b9d', colors = null) {
         const ctx = this.ctx;
         const time = Date.now() * 0.001;
 
-        // Animated concentric rings with color gradient
-        for (let r = 50; r < this.getScreenSize(); r += 80) {
-            const ringPulse = Math.sin(time + r * 0.01) * 0.5 + 0.5;
-            const alpha = (0.03 + pulse * 0.03 + ringPulse * 0.02) * (1 - r / this.getScreenSize());
+        // Floating particles in background
+        ctx.globalAlpha = 0.3;
+        for (let i = 0; i < 20; i++) {
+            const x = (Math.sin(time * 0.3 + i * 1.5) * 0.4 + 0.5) * this.width;
+            const y = ((time * 0.05 + i * 0.1) % 1) * this.height;
+            const size = 2 + Math.sin(time + i) * 1;
+            
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fillStyle = accentColor;
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        // Soft animated rings in background
+        for (let r = 100; r < this.getScreenSize(); r += 120) {
+            const ringPulse = Math.sin(time * 0.5 + r * 0.005) * 0.5 + 0.5;
+            const alpha = (0.04 + pulse * 0.02) * (1 - r / this.getScreenSize());
 
             ctx.beginPath();
-            ctx.arc(this.centerX, this.centerY, r + Math.sin(time * 2 + r * 0.02) * 3, 0, Math.PI * 2);
+            ctx.arc(this.centerX, this.centerY, r + Math.sin(time + r * 0.01) * 5, 0, Math.PI * 2);
             ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
-            ctx.lineWidth = 1 + ringPulse;
+            ctx.lineWidth = 1;
             ctx.stroke();
         }
 
-        // Radial gradient glow from center
-        const centerGlow = ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, 200);
-        centerGlow.addColorStop(0, `rgba(${this.hexToRgb(accentColor)}, ${0.05 + pulse * 0.03})`);
+        // Warm radial glow from center
+        const centerGlow = ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, 250);
+        centerGlow.addColorStop(0, `rgba(${this.hexToRgb(accentColor)}, ${0.12 + pulse * 0.05})`);
+        centerGlow.addColorStop(0.5, `rgba(${this.hexToRgb(accentColor)}, ${0.04})`);
         centerGlow.addColorStop(1, 'transparent');
         ctx.fillStyle = centerGlow;
         ctx.fillRect(0, 0, this.width, this.height);

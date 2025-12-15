@@ -385,7 +385,7 @@ export class Game {
         const colors = this.getColors();
 
         this.renderer.clear(colors.background, 0);
-        this.renderer.drawBackgroundGrid(this.state.backgroundPulse, colors.accent);
+        this.renderer.drawBackgroundEffects(this.state.backgroundPulse, colors.accent, colors);
 
         // Powerups
         for (const powerup of this.state.powerups) {
