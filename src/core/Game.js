@@ -249,7 +249,29 @@ export class Game {
 
         this.updatePowerups();
 
-        const effectiveSpeed = this.state.slowTimeActive ? this.state.ringSpeed * 0.4 : this.state.ringSpeed;
+        // Update clearance reward
+        this.state.updateClearanceReward();
+
+        // Calculate effective speed with all modifiers
+        let effectiveSpeed = this.state.ringSpeed;
+        if (this.state.slowTimeActive) effectiveSpeed *= 0.4;
+        effectiveSpeed *= this.state.getClearanceSpeedMultiplier(); // Clearance slowdown
+
+        // Apply pushback to rings if any
+        const pushback = this.state.applyClearancePushback();
+        if (pushback > 0) {
+            for (const ring of this.state.rings) {
+                if (!ring.passed) {
+                    ring.radius += pushback;
+                }
+            }
+            // Also push back powerups
+            for (const powerup of this.state.powerups) {
+                if (!powerup.collected) {
+                    powerup.radius += pushback;
+                }
+            }
+        }
 
         // Player size control
         if (this.state.autoSizeActive && this.state.rings.length > 0) {
@@ -319,6 +341,9 @@ export class Game {
                         this.state.triggerPulse(0); // Normal pulse (small)
                         haptic.light();
                     }
+
+                    // Trigger clearance reward - brief slowdown + ring pushback
+                    this.state.triggerClearanceReward(isPerfect);
 
                     this.state.updateDifficulty();
                     this.checkThemeUnlocks();

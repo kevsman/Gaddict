@@ -51,8 +51,12 @@ export class GameState {
         this.backgroundPulse = 0;
 
         // Satisfaction pulse (when clearing rings)
-        this.satisfactionPulse = 0;      // Current pulse amount (0-1)
-        this.satisfactionPulseType = 0;  // 0 = normal, 1 = perfect, 2 = combo
+        this.satisfactionPulse = 0; // Current pulse amount (0-1)
+        this.satisfactionPulseType = 0; // 0 = normal, 1 = perfect, 2 = combo
+
+        // Clearance reward (brief slowdown + pushback)
+        this.clearanceSlowdown = 0;    // Time remaining for slowdown effect
+        this.clearancePushback = 0;    // Amount to push rings back
 
         // Powerup progress orbs
         this.powerupProgress = 0; // Rings passed toward next powerup
@@ -168,14 +172,43 @@ export class GameState {
 
     getPulseScale() {
         if (this.satisfactionPulse <= 0) return 1;
-        
+
         // Different pulse intensities based on type
-        const intensity = this.satisfactionPulseType === 2 ? 0.25 : 
-                         this.satisfactionPulseType === 1 ? 0.15 : 0.08;
-        
+        const intensity = this.satisfactionPulseType === 2 ? 0.25 : this.satisfactionPulseType === 1 ? 0.15 : 0.08;
+
         // Quick pop out then back - use easing for snappy feel
         const eased = Math.sin(this.satisfactionPulse * Math.PI);
         return 1 + eased * intensity;
+    }
+
+    // Clearance reward system - brief slowdown and ring pushback
+    triggerClearanceReward(isPerfect) {
+        // Slowdown duration (in frames, roughly)
+        this.clearanceSlowdown = isPerfect ? 12 : 8;
+        // Push rings back a bit (more for perfect)
+        this.clearancePushback = isPerfect ? 25 : 15;
+    }
+
+    updateClearanceReward() {
+        if (this.clearanceSlowdown > 0) {
+            this.clearanceSlowdown--;
+        }
+    }
+
+    applyClearancePushback() {
+        const pushback = this.clearancePushback;
+        this.clearancePushback = 0;
+        return pushback;
+    }
+
+    getClearanceSpeedMultiplier() {
+        // During clearance slowdown, reduce speed significantly
+        if (this.clearanceSlowdown > 0) {
+            // Smooth slowdown that eases out
+            const factor = this.clearanceSlowdown / 12;
+            return 0.3 + (1 - factor) * 0.7; // Starts at 0.3x speed, smoothly returns to 1x
+        }
+        return 1;
     }
 
     // Powerup progress orb system
