@@ -421,17 +421,26 @@ export class Game {
 
         // Powerup progress orbs
         this.renderer.drawPowerupProgress(this.state.powerupOrbs, this.state.powerupProgress, GAME_CONFIG.RINGS_FOR_POWERUP);
-
-        this.renderer.restore();
     }
 
     gameLoop(timestamp) {
-        const deltaTime = timestamp - this.lastTime;
-        this.lastTime = timestamp;
+        try {
+            const deltaTime = timestamp - this.lastTime;
+            this.lastTime = timestamp;
 
-        this.update(deltaTime);
-        this.draw();
+            this.update(deltaTime);
+            this.draw();
 
-        requestAnimationFrame((t) => this.gameLoop(t));
+            requestAnimationFrame((t) => this.gameLoop(t));
+        } catch (error) {
+            console.error('Game loop error:', error);
+            console.error('Stack:', error.stack);
+            console.error('State:', JSON.stringify({
+                score: this.state.score,
+                rings: this.state.rings.length,
+                powerups: this.state.powerups.length,
+                theme: this.state.currentTheme
+            }));
+        }
     }
 }

@@ -29,9 +29,8 @@ export class Renderer {
     }
 
     clear(backgroundColor, screenShake = 0) {
-        this.ctx.save();
-
         if (screenShake > 0) {
+            this.ctx.save();
             const shakeX = (Math.random() - 0.5) * screenShake;
             const shakeY = (Math.random() - 0.5) * screenShake;
             this.ctx.translate(shakeX, shakeY);
@@ -45,6 +44,10 @@ export class Renderer {
 
         this.ctx.fillStyle = gradient;
         this.ctx.fillRect(0, 0, this.width, this.height);
+        
+        if (screenShake > 0) {
+            this.ctx.restore();
+        }
     }
 
     lightenColor(hex, percent) {
@@ -54,10 +57,6 @@ export class Renderer {
         const G = Math.min(((num >> 8) & 0x00ff) + amt, 255);
         const B = Math.min((num & 0x0000ff) + amt, 255);
         return `rgb(${R}, ${G}, ${B})`;
-    }
-
-    restore() {
-        this.ctx.restore();
     }
 
     drawBackgroundEffects(pulse, accentColor = '#ff6b9d', colors = null) {
