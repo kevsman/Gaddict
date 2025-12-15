@@ -187,15 +187,17 @@ export class Renderer {
     }
 
     drawPowerup(powerup) {
-        if (powerup.collected || powerup.radius < 0) return;
+        if (powerup.collected || powerup.radius < 30) return;
 
         const ctx = this.ctx;
         const time = Date.now() * 0.008;
         const pulseSize = Math.sin(powerup.pulsePhase) * 8;
         const spinAngle = time * 2;
 
-        // Outer energy field
-        const energyGlow = ctx.createRadialGradient(this.centerX, this.centerY, powerup.radius - 30, this.centerX, this.centerY, powerup.radius + 40);
+        // Outer energy field - ensure inner radius is never negative
+        const innerRadius = Math.max(0, powerup.radius - 30);
+        const outerRadius = powerup.radius + 40;
+        const energyGlow = ctx.createRadialGradient(this.centerX, this.centerY, innerRadius, this.centerX, this.centerY, outerRadius);
         energyGlow.addColorStop(0, 'transparent');
         energyGlow.addColorStop(0.5, powerup.color.replace(')', ', 0.15)').replace('rgb', 'rgba'));
         energyGlow.addColorStop(1, 'transparent');
