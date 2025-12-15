@@ -79,62 +79,34 @@ export class Renderer {
 
         const ctx = this.ctx;
         const time = Date.now() * 0.003;
-        const breathe = Math.sin(time) * 0.3 + 0.7;
 
-        // Outer glow effect
-        const outerGlow = ctx.createRadialGradient(
-            this.centerX,
-            this.centerY,
-            ring.innerRadius - 20,
-            this.centerX,
-            this.centerY,
-            ring.outerRadius + 30
-        );
-        outerGlow.addColorStop(0, 'transparent');
-        outerGlow.addColorStop(0.3, `rgba(0, 255, 170, ${0.1 * breathe})`);
-        outerGlow.addColorStop(0.7, `rgba(0, 255, 170, ${0.15 * breathe})`);
-        outerGlow.addColorStop(1, 'transparent');
-        ctx.fillStyle = outerGlow;
-        ctx.fillRect(0, 0, this.width, this.height);
-
-        // Draw filled zone (safe zone) with gradient
+        // Draw filled zone (safe zone) - simple and clear
         ctx.beginPath();
         ctx.arc(this.centerX, this.centerY, ring.outerRadius, 0, Math.PI * 2);
         ctx.arc(this.centerX, this.centerY, ring.innerRadius, 0, Math.PI * 2, true);
-        const zoneGradient = ctx.createRadialGradient(this.centerX, this.centerY, ring.innerRadius, this.centerX, this.centerY, ring.outerRadius);
-        zoneGradient.addColorStop(0, `rgba(0, 255, 170, ${0.25 * breathe})`);
-        zoneGradient.addColorStop(0.5, `rgba(0, 255, 200, ${0.2 * breathe})`);
-        zoneGradient.addColorStop(1, `rgba(0, 255, 170, ${0.15 * breathe})`);
-        ctx.fillStyle = zoneGradient;
+        ctx.fillStyle = 'rgba(0, 255, 170, 0.12)';
         ctx.fill();
 
-        // Animated boundary lines
-        ctx.shadowColor = '#00ffaa';
-        ctx.shadowBlur = 10 * breathe;
-        ctx.strokeStyle = `rgba(0, 255, 170, ${0.6 + breathe * 0.3})`;
-        ctx.lineWidth = 2 + breathe;
-
+        // Clear inner boundary line
         ctx.beginPath();
         ctx.arc(this.centerX, this.centerY, ring.innerRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(0, 255, 170, 0.5)';
+        ctx.lineWidth = 2;
         ctx.stroke();
 
+        // Clear outer boundary line
         ctx.beginPath();
         ctx.arc(this.centerX, this.centerY, ring.outerRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(0, 255, 170, 0.5)';
+        ctx.lineWidth = 2;
         ctx.stroke();
-        ctx.shadowBlur = 0;
 
-        // Perfect line with glow
+        // Perfect zone - subtle golden line
         ctx.beginPath();
         ctx.arc(this.centerX, this.centerY, ring.requiredSize, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(255, 255, 0, ${0.7 + Math.sin(time * 3) * 0.3})`;
-        ctx.shadowColor = '#ffff00';
-        ctx.shadowBlur = 15;
-        ctx.lineWidth = 3;
-        ctx.setLineDash([12, 6]);
-        ctx.lineDashOffset = -Date.now() * 0.02; // Animated dash
+        ctx.strokeStyle = `rgba(255, 220, 100, ${0.5 + Math.sin(time * 2) * 0.15})`;
+        ctx.lineWidth = 2;
         ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.shadowBlur = 0;
     }
 
     drawRing(ring) {
@@ -318,55 +290,35 @@ export class Renderer {
             ctx.globalAlpha = 1;
         }
 
-        // Multiple glow layers for depth
-        for (let i = 3; i >= 0; i--) {
-            const glowSize = playerSize + 15 + i * 15;
-            const alpha = 0.15 - i * 0.03;
-            ctx.beginPath();
-            ctx.arc(this.centerX, this.centerY, glowSize * breathe, 0, Math.PI * 2);
-            ctx.fillStyle = colors.playerGlow.replace(/[\d.]+\)$/, `${alpha * pulseGlow})`);
-            ctx.fill();
-        }
-
-        // Outer ring glow
-        ctx.beginPath();
-        ctx.arc(this.centerX, this.centerY, playerSize + 2, 0, Math.PI * 2);
-        ctx.strokeStyle = colors.player;
-        ctx.lineWidth = 4;
-        ctx.shadowColor = colors.player;
-        ctx.shadowBlur = 25 * pulseGlow;
-        ctx.globalAlpha = 0.6;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        ctx.globalAlpha = 1;
-
-        // Main player circle with gradient
-        const playerGradient = ctx.createRadialGradient(
-            this.centerX - playerSize * 0.3,
-            this.centerY - playerSize * 0.3,
-            0,
-            this.centerX,
-            this.centerY,
-            playerSize * 1.2
+        // Soft glow around player
+        const glowSize = playerSize + 25;
+        const glowGradient = ctx.createRadialGradient(
+            this.centerX, this.centerY, playerSize * 0.5,
+            this.centerX, this.centerY, glowSize
         );
-        playerGradient.addColorStop(0, '#ffffff');
-        playerGradient.addColorStop(0.3, colors.player);
-        playerGradient.addColorStop(1, this.darkenColor(colors.player, 30));
-
+        glowGradient.addColorStop(0, colors.playerGlow);
+        glowGradient.addColorStop(1, 'transparent');
         ctx.beginPath();
-        ctx.arc(this.centerX, this.centerY, playerSize, 0, Math.PI * 2);
-        ctx.fillStyle = playerGradient;
+        ctx.arc(this.centerX, this.centerY, glowSize, 0, Math.PI * 2);
+        ctx.fillStyle = glowGradient;
         ctx.fill();
 
-        // Bright inner core
-        const coreSize = playerSize * 0.4;
-        const coreGradient = ctx.createRadialGradient(this.centerX, this.centerY, 0, this.centerX, this.centerY, coreSize);
-        coreGradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
-        coreGradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.3)');
-        coreGradient.addColorStop(1, 'transparent');
+        // Main player circle - clean solid color with subtle edge
         ctx.beginPath();
-        ctx.arc(this.centerX, this.centerY, coreSize, 0, Math.PI * 2);
-        ctx.fillStyle = coreGradient;
+        ctx.arc(this.centerX, this.centerY, playerSize, 0, Math.PI * 2);
+        ctx.fillStyle = colors.player;
+        ctx.fill();
+
+        // Subtle lighter edge highlight
+        const edgeGradient = ctx.createRadialGradient(
+            this.centerX, this.centerY, playerSize * 0.7,
+            this.centerX, this.centerY, playerSize
+        );
+        edgeGradient.addColorStop(0, 'transparent');
+        edgeGradient.addColorStop(1, 'rgba(255, 255, 255, 0.15)');
+        ctx.beginPath();
+        ctx.arc(this.centerX, this.centerY, playerSize, 0, Math.PI * 2);
+        ctx.fillStyle = edgeGradient;
         ctx.fill();
 
         // Holding indicator - pulsing expansion ring
