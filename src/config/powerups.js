@@ -21,7 +21,6 @@ export const POWERUP_TYPES = {
         duration: 4000,
         icon: '👻',
         description: 'Phase through rings',
-        stackable: true,
     },
     freeze: {
         name: 'FREEZE',
@@ -37,7 +36,7 @@ export const POWERUP_TYPES = {
         icon: '⚡',
         description: 'Immune to everything',
     },
-    
+
     // SIZE POWERUPS (4)
     tinyMode: {
         name: 'TINY MODE',
@@ -67,7 +66,7 @@ export const POWERUP_TYPES = {
         icon: '🎈',
         description: 'Faster size changes',
     },
-    
+
     // SCORING POWERUPS (6)
     doublePoints: {
         name: '2X POINTS',
@@ -115,7 +114,7 @@ export const POWERUP_TYPES = {
         icon: '🎰',
         description: 'Random bonus points',
     },
-    
+
     // ASSIST POWERUPS (6)
     magnetize: {
         name: 'MAGNET',
@@ -161,7 +160,7 @@ export const POWERUP_TYPES = {
         icon: '👁️',
         description: 'See ring safe zones',
     },
-    
+
     // RING MANIPULATION (5)
     clearRings: {
         name: 'CLEAR ALL',
@@ -198,7 +197,7 @@ export const POWERUP_TYPES = {
         icon: '💚',
         description: 'All rings count as passed',
     },
-    
+
     // SPECIAL / FUN POWERUPS (4)
     extraLife: {
         name: 'EXTRA LIFE',

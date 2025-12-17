@@ -65,7 +65,7 @@ export class UIManager {
         this.elements.bestScore.textContent = highScore;
         this.elements.gameOver.style.display = 'block';
         this.elements.newHighScore.style.display = isNewHighScore ? 'block' : 'none';
-        
+
         // Zeigarnik Effect - show how close they are to next unlock
         if (nextUnlock && this.elements.nextUnlockHint) {
             this.elements.nextUnlockHint.textContent = `🎯 ${nextUnlock.pointsAway} points away from ${nextUnlock.name} theme!`;

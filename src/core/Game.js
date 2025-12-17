@@ -88,6 +88,7 @@ export class Game {
 
         this.ui.showMessage(false);
         this.ui.hideGameOver();
+        this.ui.updateScore(0);
         this.ui.updateMultiplier(1, false);
         this.ui.updatePowerupIndicator({}, false, POWERUP_TYPES);
 
@@ -132,7 +133,6 @@ export class Game {
     // Clear all stackable powerups (called when you miss a ring)
     clearStackablePowerups() {
         const stackablePowerupStates = [
-            { key: 'ghost', state: 'ghostActive' },
             { key: 'doublePoints', state: 'doublePointsActive' },
             { key: 'triplePoints', state: 'triplePointsActive' },
             { key: 'perfectStreak', state: 'perfectStreakActive' },
@@ -156,7 +156,7 @@ export class Game {
                 return {
                     name: theme.name,
                     score: theme.unlockScore,
-                    pointsAway: theme.unlockScore - this.state.score
+                    pointsAway: theme.unlockScore - this.state.score,
                 };
             }
         }
@@ -207,7 +207,7 @@ export class Game {
 
         sound.play('powerup');
         haptic.success();
-        
+
         // Chromatic aberration on powerup activation
         this.renderer.triggerChromaticAberration(0.6);
 
@@ -269,7 +269,7 @@ export class Game {
                 break;
             case 'ghost':
                 this.state.ghostActive = true;
-                this.state.activePowerups.ghost = powerupInfo.stackable ? Infinity : Date.now() + powerupInfo.duration;
+                this.state.activePowerups.ghost = Date.now() + powerupInfo.duration;
                 break;
             case 'freeze':
                 this.state.freezeActive = true;
@@ -392,7 +392,7 @@ export class Game {
                         this.particles.ring(this.renderer.centerX, this.renderer.centerY, ring.radius, '#66ff66', 6);
                     }
                 }
-                this.state.rings = this.state.rings.filter(r => r.passed);
+                this.state.rings = this.state.rings.filter((r) => r.passed);
                 break;
 
             // SPECIAL
@@ -652,10 +652,7 @@ export class Game {
 
                 // Phantom Hitbox - check if player would survive with forgiveness
                 if (!fitsGap && !this.state.ghostActive) {
-                    const fitsWithForgiveness = ring.playerFitsGapWithForgiveness(
-                        this.state.playerSize, 
-                        GAME_CONFIG.PHANTOM_HITBOX_FORGIVENESS
-                    );
+                    const fitsWithForgiveness = ring.playerFitsGapWithForgiveness(this.state.playerSize, GAME_CONFIG.PHANTOM_HITBOX_FORGIVENESS);
                     if (fitsWithForgiveness) {
                         fitsGap = true;
                         isNearMiss = true;
@@ -681,7 +678,9 @@ export class Game {
                         this.particles.burst(
                             this.renderer.centerX + (Math.random() - 0.5) * this.state.playerSize,
                             this.renderer.centerY + (Math.random() - 0.5) * this.state.playerSize,
-                            '#ffa500', 8, { minSpeed: 2, maxSpeed: 5, minSize: 2, maxSize: 4 }
+                            '#ffa500',
+                            8,
+                            { minSpeed: 2, maxSpeed: 5, minSize: 2, maxSize: 4 }
                         );
                     }
 
@@ -722,7 +721,7 @@ export class Game {
                         sound.play('combo');
                         haptic.medium();
                         this.state.triggerPulse(2);
-                        
+
                         // Chromatic aberration at high combos (50+)
                         if (this.state.combo >= 50) {
                             this.renderer.triggerChromaticAberration(0.8);

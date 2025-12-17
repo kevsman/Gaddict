@@ -144,7 +144,8 @@
             }
 
             @keyframes stackablePulse {
-                0%, 100% {
+                0%,
+                100% {
                     opacity: 1;
                     transform: scale(1);
                     box-shadow: 0 0 10px currentColor;
@@ -369,7 +370,9 @@
             <div id="newHighScore">⭐ NEW HIGH SCORE! ⭐</div>
             <p>SCORE: <span id="finalScore">0</span></p>
             <p>BEST: <span id="bestScore">0</span></p>
-            <div id="nextUnlockHint" style="display: none; color: #ffd93d; font-size: 16px; margin: 10px 0; opacity: 0.9;">🎯 X points away from Y theme!</div>
+            <div id="nextUnlockHint" style="display: none; color: #ffd93d; font-size: 16px; margin: 10px 0; opacity: 0.9">
+                🎯 X points away from Y theme!
+            </div>
             <div id="restartHint">TAP TO RESTART</div>
         </div>
 
