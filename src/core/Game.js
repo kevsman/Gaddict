@@ -101,6 +101,9 @@ export class Game {
         this.state.triggerHitStop(); // Hit stop for impact
         this.renderer.triggerChromaticAberration(1.0); // Full chromatic aberration on death
 
+        // Clear all stackable powerups on game over
+        this.clearStackablePowerups();
+
         sound.play('death');
         sound.stopMusic();
         haptic.death();
@@ -124,6 +127,26 @@ export class Game {
                 this.ui.showGameOver(this.state.score, this.state.highScore, isNewHighScore, nextUnlock);
             }
         }, 500);
+    }
+
+    // Clear all stackable powerups (called when you miss a ring)
+    clearStackablePowerups() {
+        const stackablePowerupStates = [
+            { key: 'ghost', state: 'ghostActive' },
+            { key: 'doublePoints', state: 'doublePointsActive' },
+            { key: 'triplePoints', state: 'triplePointsActive' },
+            { key: 'perfectStreak', state: 'perfectStreakActive' },
+            { key: 'comboKeeper', state: 'comboKeeperActive' },
+            { key: 'magnetize', state: 'magnetizeActive' },
+            { key: 'wideGap', state: 'wideGapActive' },
+        ];
+
+        for (const powerup of stackablePowerupStates) {
+            if (POWERUP_TYPES[powerup.key]?.stackable && this.state.activePowerups[powerup.key] === Infinity) {
+                this.state[powerup.state] = false;
+                delete this.state.activePowerups[powerup.key];
+            }
+        }
     }
 
     // Zeigarnik Effect - find the next theme unlock
@@ -246,7 +269,7 @@ export class Game {
                 break;
             case 'ghost':
                 this.state.ghostActive = true;
-                this.state.activePowerups.ghost = Date.now() + powerupInfo.duration;
+                this.state.activePowerups.ghost = powerupInfo.stackable ? Infinity : Date.now() + powerupInfo.duration;
                 break;
             case 'freeze':
                 this.state.freezeActive = true;
@@ -270,21 +293,24 @@ export class Game {
             // SCORING
             case 'doublePoints':
                 this.state.doublePointsActive = true;
-                this.state.activePowerups.doublePoints = Date.now() + powerupInfo.duration;
+                this.state.activePowerups.doublePoints = powerupInfo.stackable ? Infinity : Date.now() + powerupInfo.duration;
                 break;
             case 'triplePoints':
                 this.state.triplePointsActive = true;
-                this.state.doublePointsActive = false; // Triple overrides double
-                this.state.activePowerups.triplePoints = Date.now() + powerupInfo.duration;
-                delete this.state.activePowerups.doublePoints;
+                // Stackable powerups can coexist - only clear double if not stackable
+                if (!POWERUP_TYPES.doublePoints.stackable) {
+                    this.state.doublePointsActive = false;
+                    delete this.state.activePowerups.doublePoints;
+                }
+                this.state.activePowerups.triplePoints = powerupInfo.stackable ? Infinity : Date.now() + powerupInfo.duration;
                 break;
             case 'perfectStreak':
                 this.state.perfectStreakActive = true;
-                this.state.activePowerups.perfectStreak = Date.now() + powerupInfo.duration;
+                this.state.activePowerups.perfectStreak = POWERUP_TYPES.perfectStreak.stackable ? Infinity : Date.now() + powerupInfo.duration;
                 break;
             case 'comboKeeper':
                 this.state.comboKeeperActive = true;
-                this.state.activePowerups.comboKeeper = Date.now() + powerupInfo.duration;
+                this.state.activePowerups.comboKeeper = POWERUP_TYPES.comboKeeper.stackable ? Infinity : Date.now() + powerupInfo.duration;
                 break;
             case 'comboBoost':
                 // Instant +10 combo
@@ -302,11 +328,11 @@ export class Game {
             // ASSIST
             case 'magnetize':
                 this.state.magnetizeActive = true;
-                this.state.activePowerups.magnetize = Date.now() + powerupInfo.duration;
+                this.state.activePowerups.magnetize = POWERUP_TYPES.magnetize.stackable ? Infinity : Date.now() + powerupInfo.duration;
                 break;
             case 'wideGap':
                 this.state.wideGapActive = true;
-                this.state.activePowerups.wideGap = Date.now() + powerupInfo.duration;
+                this.state.activePowerups.wideGap = POWERUP_TYPES.wideGap.stackable ? Infinity : Date.now() + powerupInfo.duration;
                 break;
             case 'slowRings':
                 this.state.slowRingsActive = true;
@@ -733,6 +759,8 @@ export class Game {
                         sound.play('shield');
                         haptic.medium();
                         this.ui.showComboPopup('🛡️ SHIELD USED!');
+                        // Clear stackable powerups when you miss (even if shield saves you)
+                        this.clearStackablePowerups();
                         this.ui.updatePowerupIndicator(this.state.activePowerups, false, POWERUP_TYPES);
                         this.state.resetCombo();
                         this.ui.updateMultiplier(1, false);

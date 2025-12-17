@@ -87,8 +87,13 @@ export class UIManager {
         for (const [type, endTime] of Object.entries(activePowerups)) {
             if (endTime > now) {
                 const info = powerupTypes[type];
-                const remaining = Math.ceil((endTime - now) / 1000);
-                html += `<span class="powerup-active" style="background: ${info.color}22; border: 1px solid ${info.color}; color: ${info.color}">${info.icon} ${remaining}s</span>`;
+                // Check if this is a stackable powerup (Infinity means until miss)
+                if (endTime === Infinity) {
+                    html += `<span class="powerup-active powerup-stackable" style="background: ${info.color}22; border: 2px solid ${info.color}; color: ${info.color}">${info.icon} ∞</span>`;
+                } else {
+                    const remaining = Math.ceil((endTime - now) / 1000);
+                    html += `<span class="powerup-active" style="background: ${info.color}22; border: 1px solid ${info.color}; color: ${info.color}">${info.icon} ${remaining}s</span>`;
+                }
             }
         }
 

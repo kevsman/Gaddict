@@ -138,6 +138,24 @@
                 box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             }
 
+            .powerup-stackable {
+                animation: stackablePulse 0.8s infinite;
+                box-shadow: 0 0 15px currentColor;
+            }
+
+            @keyframes stackablePulse {
+                0%, 100% {
+                    opacity: 1;
+                    transform: scale(1);
+                    box-shadow: 0 0 10px currentColor;
+                }
+                50% {
+                    opacity: 0.9;
+                    transform: scale(1.08);
+                    box-shadow: 0 0 20px currentColor;
+                }
+            }
+
             @keyframes powerupPulse {
                 0%,
                 100% {

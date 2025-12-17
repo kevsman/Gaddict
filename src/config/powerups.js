@@ -21,6 +21,7 @@ export const POWERUP_TYPES = {
         duration: 4000,
         icon: '👻',
         description: 'Phase through rings',
+        stackable: true,
     },
     freeze: {
         name: 'FREEZE',
@@ -74,6 +75,7 @@ export const POWERUP_TYPES = {
         duration: 8000,
         icon: '⭐',
         description: 'Double all points',
+        stackable: true,
     },
     triplePoints: {
         name: '3X POINTS',
@@ -81,6 +83,7 @@ export const POWERUP_TYPES = {
         duration: 5000,
         icon: '💎',
         description: 'Triple all points',
+        stackable: true,
     },
     perfectStreak: {
         name: 'PERFECT',
@@ -88,6 +91,7 @@ export const POWERUP_TYPES = {
         duration: 6000,
         icon: '✨',
         description: 'All passes are perfect',
+        stackable: true,
     },
     comboKeeper: {
         name: 'COMBO LOCK',
@@ -95,6 +99,7 @@ export const POWERUP_TYPES = {
         duration: 8000,
         icon: '🔒',
         description: 'Combo never resets',
+        stackable: true,
     },
     comboBoost: {
         name: 'COMBO BOOST',
@@ -118,6 +123,7 @@ export const POWERUP_TYPES = {
         duration: 5000,
         icon: '🧲',
         description: 'Easier ring passes',
+        stackable: true,
     },
     wideGap: {
         name: 'WIDE GAP',
@@ -125,6 +131,7 @@ export const POWERUP_TYPES = {
         duration: 7000,
         icon: '🚪',
         description: 'Rings have bigger gaps',
+        stackable: true,
     },
     slowRings: {
         name: 'SLOW RINGS',
